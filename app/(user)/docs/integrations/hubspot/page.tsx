@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import DocsLeftSidebar from "@/components/docs/DocsLeftSidebar";
 import DocsOnThisPage from "@/components/docs/DocsOnThisPage";
+import DocsContent from "@/components/docs/DocsContent";
 import { Button } from "@/components/ui/button";
 import { 
   Copy, 

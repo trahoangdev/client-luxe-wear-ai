@@ -11,21 +11,21 @@ export default function CtaBanner() {
       <div className="relative z-10 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
-            Make customer experience your
+            Biến trải nghiệm khách hàng thành
             <br />
-            competitive edge
+            lợi thế cạnh tranh của bạn
           </h2>
           <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
-            Use LuxeWear to deliver exceptional support experiences that set you apart from the competition.
+            Sử dụng LuxeWear để mang lại trải nghiệm hỗ trợ xuất sắc giúp bạn nổi bật so với đối thủ.
           </p>
           <div className="mt-10 inline-flex flex-col items-center gap-3">
             <button className="relative inline-flex items-center justify-center rounded-full bg-black px-8 py-4 text-white text-lg font-medium shadow-sm">
-              Build your agent
+              Xây dựng agent của bạn
               <span className="pointer-events-none absolute inset-x-0 -bottom-1 h-1 rounded-b-full bg-gradient-to-r from-pink-500 to-purple-500" />
             </button>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CreditCard className="h-4 w-4" />
-              <span>No credit card required</span>
+              <span>Không cần thẻ tín dụng</span>
             </div>
           </div>
         </div>

@@ -3,16 +3,16 @@ export default function Testimonials() {
     <section className="mt-24">
       <div className="container mx-auto px-4">
         <div className="text-center">
-          <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">Testimonials</div>
-          <h2 className="mt-3 text-3xl md:text-5xl font-extrabold tracking-tight">What people say</h2>
-          <p className="mt-2 text-sm text-muted-foreground">With over 9000 clients served, here's what they have to say</p>
+          <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">Đánh giá</div>
+          <h2 className="mt-3 text-3xl md:text-5xl font-extrabold tracking-tight">Những gì mọi người nói</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Với hơn 9000 khách hàng đã sử dụng, đây là những gì họ nói</p>
         </div>
 
         <div className="mt-10 flex flex-wrap gap-6 items-stretch">
           {/* Big quote - flexible */}
           <div className="rounded-3xl border p-6 flex-1 min-w-[320px]">
             <p className="text-lg leading-relaxed">
-              "LuxeWear is a strong signal of how customer support will evolve. It is an early adopter of the agentic approach, which will become increasingly effective, trusted, and prominent."
+              &quot;LuxeWear là một tín hiệu mạnh mẽ về cách hỗ trợ khách hàng sẽ phát triển. Đây là một trong những người tiên phong áp dụng phương pháp agentic, điều này sẽ ngày càng hiệu quả, đáng tin cậy và nổi bật.&quot;
             </p>
             <div className="mt-8 flex items-center gap-3">
               <img src="/images/testimonials/marc-manara.webp" className="h-10 w-10 rounded-full" alt="Marc Manara" />
@@ -25,7 +25,7 @@ export default function Testimonials() {
 
           {/* Short quote - fixed 200px */}
           <div className="rounded-3xl border p-6 w-[200px]">
-            <p className="text-lg leading-relaxed">"This is awesome, thanks for building it!"</p>
+            <p className="text-lg leading-relaxed">&quot;Thật tuyệt vời, cảm ơn vì đã xây dựng nó!&quot;</p>
             <div className="mt-8 flex items-center gap-3">
               <img src="/images/testimonials/logan-kilpatrick.webp" className="h-10 w-10 rounded-full" alt="Logan Kilpatrick" />
               <div>
@@ -40,7 +40,7 @@ export default function Testimonials() {
             <img src="/images/testimonials/abstract-1.webp" className="w-full h-48 object-cover" alt="abstract" />
             <div className="p-6">
               <div className="text-4xl font-extrabold">9000+</div>
-              <div className="text-sm text-muted-foreground">businesses trust LuxeWear</div>
+              <div className="text-sm text-muted-foreground">doanh nghiệp tin tưởng LuxeWear</div>
             </div>
           </div>
 
@@ -49,13 +49,13 @@ export default function Testimonials() {
             <img src="/images/testimonials/abstract-2.webp" className="w-full h-48 object-cover" alt="abstract" />
             <div className="p-6">
               <div className="text-4xl font-extrabold">140+</div>
-              <div className="text-sm text-muted-foreground">countries served</div>
+              <div className="text-sm text-muted-foreground">quốc gia được phục vụ</div>
             </div>
           </div>
 
           {/* Short quote 2 - fixed 200px */}
           <div className="rounded-3xl border p-6 w-[200px]">
-            <p className="text-lg leading-relaxed">"An overpowered tool built with the OP stack."</p>
+            <p className="text-lg leading-relaxed">&quot;Một công cụ mạnh mẽ được xây dựng với OP stack.&quot;</p>
             <div className="mt-8 flex items-center gap-3">
               <img src="/images/testimonials/greg-kogan.webp" className="h-10 w-10 rounded-full" alt="Greg Kogan" />
               <div>
@@ -68,7 +68,7 @@ export default function Testimonials() {
           {/* Long quote - flexible */}
           <div className="rounded-3xl border p-6 flex-1 min-w-[320px]">
             <p className="text-lg leading-relaxed">
-              "Our chatbot has been great. Answers questions it knows, delegates to our talent when its stuck, knows how to push clients to the funnel. LuxeWear is what we use, 10/10 recommend."
+              &quot;Chatbot của chúng tôi đã rất tuyệt vời. Trả lời các câu hỏi mà nó biết, chuyển giao cho nhân viên khi gặp khó khăn, biết cách đưa khách hàng vào funnel. LuxeWear là những gì chúng tôi sử dụng, khuyến nghị 10/10.&quot;
             </p>
             <div className="mt-8 flex items-center gap-3">
               <img src="/images/testimonials/martin-terskin.webp" className="h-10 w-10 rounded-full" alt="Martin Terskin" />

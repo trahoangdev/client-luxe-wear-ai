@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tag } from "antd";
+import { Tag, Table } from "antd";
 import {
   Dialog,
   DialogContent,
@@ -339,27 +339,21 @@ export default function AdminKnowledgePage() {
 
       {/* Knowledge Table */}
       <Card className="rounded-2xl border overflow-x-auto p-2">
-        {/* eslint-disable-next-line @typescript-eslint/no-var-requires */}
-        {(() => {
-          const { Table } = require("antd");
-          return (
-            <Table
-              rowKey="id"
-              size="middle"
-              columns={columns as any}
-              dataSource={filtered}
-              loading={loading}
-              pagination={{
-                current: page,
-                pageSize: perPage,
+        <Table
+          rowKey="id"
+          size="middle"
+          columns={columns as any}
+          dataSource={filtered}
+          loading={loading}
+          pagination={{
+            current: page,
+            pageSize: perPage,
                 total: total,
                 showSizeChanger: false,
                 onChange: (p: number) => setPage(p),
               }}
               scroll={{ x: 1200 }}
             />
-          );
-        })()}
       </Card>
 
       {/* View Knowledge Dialog */}

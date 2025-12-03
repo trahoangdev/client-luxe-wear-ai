@@ -41,7 +41,7 @@ export default function Search() {
   }, []);
 
   const CommandItemComponent: React.FC<CommandItemProps> = ({ item }) => {
-    // @ts-expect-error
+    // @ts-expect-error - icons is a dynamic object that may not have all icon keys typed
     const LucideIcon = icons[item.icon];
 
     return (
