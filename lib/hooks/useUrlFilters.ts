@@ -52,7 +52,7 @@ export function useUrlFilters<T extends Record<string, string>>(
     for (const key in defaults) {
       const value = searchParams.get(key);
       if (value) {
-        filters[key] = value;
+        filters[key] = value as T[Extract<keyof T, string>];
       }
     }
     return filters;

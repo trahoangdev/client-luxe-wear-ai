@@ -65,7 +65,6 @@ export default function SettingsProfilePage() {
         setEmail(authUser.email || "");
         setPhone(authUser.phone || "");
         setWebsite(authUser.website || "");
-        setBio((authUser as any).bio || "");
         setAvatarUrl(authUser.avatar_url || null);
       }
     } finally {

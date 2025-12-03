@@ -41,14 +41,14 @@ export default function InfoPage() {
           {/* Mock chat bubbles */}
           <div className="absolute left-1/2 top-16 w-[70%] -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="mx-auto mb-4 inline-flex items-center gap-3 rounded-full border bg-background px-4 py-3 shadow-sm hover:shadow-md transition-shadow">
-              <span className="text-sm text-muted-foreground">I want to upgrade to the premium plan</span>
+              <span className="text-sm text-muted-foreground">Tôi muốn nâng cấp lên gói cao cấp</span>
               <span className="h-8 w-8 overflow-hidden rounded-full bg-muted" />
             </div>
           </div>
           <div className="absolute left-1/2 top-36 w-[65%] -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
             <div className="mx-auto inline-flex items-center gap-3 rounded-full border bg-background px-4 py-3 shadow-sm hover:shadow-md transition-shadow">
               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background">★</span>
-              <span className="text-sm text-muted-foreground">Sure! I&apos;ve just updated that.</span>
+              <span className="text-sm text-muted-foreground">Được thôi! Tôi vừa cập nhật xong.</span>
             </div>
           </div>
 
@@ -453,27 +453,27 @@ function AdvantagesSlider() {
   const items = [
     {
       img: "/images/advantages/works-across-channels.webp",
-      title: "Works across channels",
+      title: "Hoạt động trên nhiều kênh",
       desc:
-        "Easily integrate your AI Agent with various platforms like Slack, WhatsApp, Messenger, and web widgets, ensuring seamless functionality across all.",
+        "Dễ dàng tích hợp AI Agent với các nền tảng như Slack, WhatsApp, Messenger và widget trên web, đảm bảo trải nghiệm liền mạch ở mọi nơi.",
     },
     {
       img: "/images/advantages/secure-by-default.webp",
-      title: "Secure by default",
+      title: "Bảo mật ngay từ thiết kế",
       desc:
-        "Your AI Agent ensures the utmost safety by refusing sensitive or unauthorized requests, keeping your data protected at all times.",
+        "AI Agent luôn ưu tiên an toàn dữ liệu bằng cách từ chối các yêu cầu nhạy cảm hoặc trái phép, giữ cho dữ liệu của bạn được bảo vệ mọi lúc.",
     },
     {
       img: "/images/advantages/enterprise-quality-guardrails.webp",
-      title: "Enterprise quality guardrails",
+      title: "Hàng rào bảo vệ cấp doanh nghiệp",
       desc:
-        "AI-powered guardrails prevent misinformation and off-topic responses, maintaining professionalism and trust in every interaction.",
+        "Các lớp bảo vệ được hỗ trợ bởi AI giúp ngăn chặn thông tin sai lệch và phản hồi lệch chủ đề, duy trì sự chuyên nghiệp và độ tin cậy trong mọi tương tác.",
     },
     {
       img: "/images/advantages/handles-unclear-requests.webp",
-      title: "Handles unclear requests",
+      title: "Xử lý yêu cầu không rõ ràng",
       desc:
-        "Politely declines or asks follow-up questions when requests are ambiguous or risky, ensuring safe and accurate assistance.",
+        "Lịch sự từ chối hoặc đặt câu hỏi làm rõ khi yêu cầu mơ hồ hoặc có rủi ro, đảm bảo hỗ trợ luôn an toàn và chính xác.",
     },
   ];
 
@@ -512,9 +512,9 @@ function AdvantagesSlider() {
     <section className="mt-24 md:mt-32">
       <div className="container mx-auto px-4">
       <div className="text-center">
-        <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">Advantages</div>
+        <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">Ưu điểm</div>
         <h2 className="mt-3 text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
-          Unlock the power of AI-driven Agents
+          Khai mở sức mạnh của các tác nhân AI
         </h2>
       </div>
 
@@ -559,16 +559,14 @@ function SecuritySection() {
       <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-start">
         {/* Left: Heading + copy + badges */}
         <div className="space-y-6">
-          <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">Security</div>
+          <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground">Bảo mật</div>
           <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
-            Enterprise-grade
+            Bảo mật & riêng tư
             <br />
-            security & privacy
+            cấp độ doanh nghiệp
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            We take security and compliance seriously. LuxeWear is SOC 2 Type II and
-            GDPR compliant, trusted by thousands of businesses to build secure and
-            compliant AI Agents.
+            Chúng tôi coi bảo mật và tuân thủ là ưu tiên hàng đầu. LuxeWear đáp ứng các tiêu chuẩn như SOC 2 Type II và GDPR, được hàng nghìn doanh nghiệp tin dùng để xây dựng các AI Agent an toàn và tuân thủ.
           </p>
           <div className="mt-8 flex items-center gap-8">
             <img src="/images/security/soc-2.webp" alt="SOC 2" className="h-20 w-auto" />
@@ -580,27 +578,27 @@ function SecuritySection() {
         <div className="rounded-3xl border overflow-hidden divide-y hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between p-6 md:p-8 hover:bg-muted/30 transition-colors">
             <div className="max-w-xl">
-              <h3 className="text-xl font-semibold mb-2">Your data stays yours</h3>
+              <h3 className="text-xl font-semibold mb-2">Dữ liệu của bạn luôn thuộc về bạn</h3>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                Your data is only accessible to your AI agent and is never used to train models.
+                Dữ liệu của bạn chỉ được AI Agent của bạn truy cập và không bao giờ được dùng để huấn luyện mô hình bên ngoài.
               </p>
             </div>
             <img src="/images/security/database.webp" alt="Database" className="h-24 md:h-28 w-auto" />
           </div>
           <div className="flex items-center justify-between p-6 md:p-8 hover:bg-muted/30 transition-colors">
             <div className="max-w-xl">
-              <h3 className="text-xl font-semibold mb-2">Data encryption</h3>
+              <h3 className="text-xl font-semibold mb-2">Mã hóa dữ liệu</h3>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                All data is encrypted at rest and in transit using industry-standard encryption algorithms.
+                Toàn bộ dữ liệu đều được mã hóa khi lưu trữ và khi truyền tải bằng các thuật toán mã hóa theo tiêu chuẩn ngành.
               </p>
             </div>
             <img src="/images/security/lock.webp" alt="Lock" className="h-24 md:h-28 w-auto" />
           </div>
           <div className="flex items-center justify-between p-6 md:p-8 hover:bg-muted/30 transition-colors">
             <div className="max-w-xl">
-              <h3 className="text-xl font-semibold mb-2">Secure integrations</h3>
+              <h3 className="text-xl font-semibold mb-2">Tích hợp an toàn</h3>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                We use verified variables to ensure users can access only their own data in your systems.
+                Chúng tôi sử dụng các biến đã được xác minh để đảm bảo người dùng chỉ có thể truy cập dữ liệu thuộc về họ trong hệ thống của bạn.
               </p>
             </div>
             <img src="/images/security/cube.webp" alt="Cube" className="h-24 md:h-28 w-auto" />
@@ -612,10 +610,10 @@ function SecuritySection() {
       <div className="container mx-auto px-6 mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border py-4 hover:shadow-md transition-shadow duration-300">
         <div className="flex items-center gap-2 text-sm">
           <Shield className="h-4 w-4" />
-          <span>LuxeWear is committed to safeguarding your data.</span>
+          <span>LuxeWear cam kết bảo vệ dữ liệu của bạn.</span>
         </div>
         <a href="/docs/user-guides" className="inline-flex items-center gap-1 text-sm font-medium hover:text-foreground transition-colors">
-          Learn more <ChevronRight className="h-4 w-4" />
+          Tìm hiểu thêm <ChevronRight className="h-4 w-4" />
         </a>
       </div>
     </section>

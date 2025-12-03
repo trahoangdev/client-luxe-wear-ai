@@ -330,7 +330,7 @@ export default function CreateAgentPage() {
               <Label htmlFor="model">Model</Label>
               <Select
                 value={config?.model}
-                onValueChange={(v) => setValue("config.model", v)}
+                onValueChange={(v) => setValue("config.model", v as "gemini-1.5-pro" | "gemini-2.5-flash")}
               >
                 <SelectTrigger>
                   <SelectValue />

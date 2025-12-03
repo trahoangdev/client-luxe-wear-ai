@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import Input from "@/components/Input";
-import Button from "@/components/Button";
-import AuthService from "@/services/auth";
+import Input from "@/src/components/Input";
+import Button from "@/src/components/Button";
+import AuthService from "@/src/services/auth";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
