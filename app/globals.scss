@@ -1,0 +1,287 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+    --primary: 24 9.8% 10%;
+    --primary-foreground: 60 9.1% 97.8%;
+    --secondary: 60 4.8% 95.9%;
+    --secondary-foreground: 24 9.8% 10%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+    --accent: 60 4.8% 95.9%;
+    --accent-foreground: 24 9.8% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 20 14.3% 4.1%;
+    --radius: 0.5rem;
+
+    --chart-1: 359 2% 40%;
+    --chart-2: 240 1% 74%;
+    --chart-3: 240 1% 58%;
+    --chart-4: 240 1% 42%;
+    --chart-5: 240 2% 26%;
+
+    --sidebar-width: 19rem;
+  }
+
+  .dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 60 9.1% 97.8%;
+    --card: 20 14.3% 4.1%;
+    --card-foreground: 60 9.1% 97.8%;
+    --popover: 20 14.3% 4.1%;
+    --popover-foreground: 60 9.1% 97.8%;
+    --primary: 60 9.1% 97.8%;
+    --primary-foreground: 24 9.8% 10%;
+    --secondary: 20 5.9% 10%;
+    --secondary-foreground: 60 9.1% 97.8%;
+    --muted: 20 5.9% 10%;
+    --muted-foreground: 25 5.3% 64.7%;
+    --accent: 20 5.9% 10%;
+    --accent-foreground: 60 9.1% 97.8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 20 5.9% 20%;
+    --input: 20 5.9% 20%;
+    --ring: 20 14.3% 4.1%;
+
+    --chart-1: 359 70% 60%;
+    --chart-2: 240 70% 60%;
+    --chart-3: 240 70% 50%;
+    --chart-4: 240 70% 40%;
+    --chart-5: 240 70% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply overflow-x-hidden bg-muted/70 text-foreground;
+  }
+}
+
+/* Dashboard content zoom (instead of inline zoom style) */
+.dashboard-main-zoom {
+  transform: scale(1.1);
+  transform-origin: top left;
+}
+
+.container{
+  padding-left: 100px !important;
+  padding-right: 100px !important;
+}
+
+/* Ant Design Dark Mode Overrides */
+.dark {
+  /* Table styles */
+  .ant-table {
+    background: hsl(var(--card)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-table-thead > tr > th {
+    background: hsl(var(--muted)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-bottom: 1px solid hsl(var(--border)) !important;
+  }
+
+  .ant-table-tbody > tr > td {
+    background: hsl(var(--card)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-bottom: 1px solid hsl(var(--border)) !important;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: hsl(var(--muted)) !important;
+  }
+
+  .ant-table-tbody > tr.ant-table-row-selected > td {
+    background: hsl(var(--muted)) !important;
+  }
+
+  .ant-table-pagination {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-pagination-item {
+    background: hsl(var(--card)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .ant-pagination-item a {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-pagination-item-active {
+    background: hsl(var(--primary)) !important;
+    border-color: hsl(var(--primary)) !important;
+  }
+
+  .ant-pagination-item-active a {
+    color: hsl(var(--primary-foreground)) !important;
+  }
+
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-pagination-prev:hover,
+  .ant-pagination-next:hover {
+    color: hsl(var(--primary)) !important;
+  }
+
+  .ant-pagination-disabled {
+    opacity: 0.5;
+  }
+
+  /* Tag styles */
+  .ant-tag {
+    background: hsl(var(--muted)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .ant-tag-green {
+    background: rgba(34, 197, 94, 0.1) !important;
+    color: rgb(34, 197, 94) !important;
+    border-color: rgba(34, 197, 94, 0.3) !important;
+  }
+
+  .ant-tag-red {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: rgb(239, 68, 68) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+  }
+
+  .ant-tag-blue {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: rgb(59, 130, 246) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+  }
+
+  .ant-tag-orange {
+    background: rgba(249, 115, 22, 0.1) !important;
+    color: rgb(249, 115, 22) !important;
+    border-color: rgba(249, 115, 22, 0.3) !important;
+  }
+
+  .ant-tag-purple {
+    background: rgba(168, 85, 247, 0.1) !important;
+    color: rgb(168, 85, 247) !important;
+    border-color: rgba(168, 85, 247, 0.3) !important;
+  }
+
+  /* Avatar styles */
+  .ant-avatar {
+    background: hsl(var(--muted)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* Empty state */
+  .ant-empty {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .ant-empty-description {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Loading spinner */
+  .ant-spin-dot-item {
+    background-color: hsl(var(--primary)) !important;
+  }
+
+  /* Select dropdown */
+  .ant-select-dropdown {
+    background: hsl(var(--popover)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .ant-select-item {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-select-item-option-selected {
+    background: hsl(var(--muted)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-select-item-option-active {
+    background: hsl(var(--muted)) !important;
+  }
+
+  /* Tabs styles */
+  .ant-tabs {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-tabs-tab {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .ant-tabs-tab:hover {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-tabs-ink-bar {
+    background: hsl(var(--primary)) !important;
+  }
+
+  .ant-tabs-content-holder {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* Statistic styles */
+  .ant-statistic {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-statistic-title {
+    color: hsl(var(--muted-foreground)) !important;
+    font-size: 14px;
+  }
+
+  .ant-statistic-content {
+    color: hsl(var(--foreground)) !important;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  /* List styles */
+  .ant-list {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-list-item {
+    border-bottom-color: hsl(var(--border)) !important;
+  }
+
+  .ant-list-item-meta-title {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .ant-list-item-meta-description {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .ant-list-empty-text {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+}

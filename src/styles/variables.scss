@@ -1,0 +1,20 @@
+:root {
+  --bg: #ffffff;
+  --fg: #0d0d12;
+  --fg-muted: #5b5b66;
+  --surface: #f6f7f9;
+  --border: #e5e7eb;
+  --button-bg: #0d0d12;
+  --button-fg: #ffffff;
+}
+
+.dark {
+  --bg: #0b0c10;
+  --fg: #f8f9fb;
+  --fg-muted: #b5bac5;
+  --surface: #121318;
+  --border: #1f2128;
+  --button-bg: #f8f9fb;
+  --button-fg: #0b0c10;
+}
+
