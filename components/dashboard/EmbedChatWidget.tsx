@@ -7,11 +7,27 @@ import { toast } from "sonner";
 import { chatWithAgent } from "@/services/agentService";
 import Markdown from "@/components/markdown";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, X, Copy, Download } from "lucide-react";
+import { Loader2, Send, X, Copy, Download, FileText, BookOpen } from "lucide-react";
 
 const MAX_INPUT = 4000;
 
-type Message = { role: "user" | "assistant"; content: string; ts: number };
+interface Citation {
+  id: string;
+  title?: string;
+  fileName?: string;
+  page?: number;
+  line?: number;
+  chunkIndex?: number;
+  score: number;
+  content?: string;
+}
+
+type Message = { 
+  role: "user" | "assistant"; 
+  content: string; 
+  ts: number;
+  citations?: Citation[];
+};
 
 interface EmbedChatWidgetProps {
   agentId: string;
@@ -77,7 +93,13 @@ export default function EmbedChatWidget({
     try {
       const res = await chatWithAgent(agentId, { message: text });
       const reply = res.data?.response || res.data?.message || "(no response)";
-      const assistantMessage: Message = { role: "assistant", content: reply, ts: Date.now() };
+      const citations = res.data?.citations || [];
+      const assistantMessage: Message = { 
+        role: "assistant", 
+        content: reply, 
+        ts: Date.now(),
+        citations: citations.length > 0 ? citations : undefined
+      };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (e: any) {
       const errorMsg = e?.response?.data?.message || e?.message || "Chat failed";
@@ -256,8 +278,54 @@ export default function EmbedChatWidget({
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="prose prose-sm max-w-none dark:prose-invert">
-                        <Markdown>{msg.content}</Markdown>
+                      <div className="space-y-3">
+                        <div className="prose prose-sm max-w-none dark:prose-invert">
+                          <Markdown>{msg.content}</Markdown>
+                        </div>
+                        {msg.citations && 
+                         Array.isArray(msg.citations) &&
+                         msg.citations.length > 0 && 
+                         msg.citations.some(c => c && (c.score > 0 || c.title || c.fileName)) && (
+                          <div className="mt-3 pt-3 border-t border-border/60">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="text-xs font-medium text-muted-foreground">Nguồn tham khảo:</span>
+                            </div>
+                            <div className="space-y-1.5">
+                              {msg.citations.map((citation, idx) => (
+                                <div
+                                  key={citation.id || idx}
+                                  className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2.5 py-1.5 border border-border/40"
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <FileText className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground/70" />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium text-foreground/90 mb-0.5">
+                                        {citation.title || citation.fileName || `Nguồn ${idx + 1}`}
+                                      </div>
+                                      <div className="space-y-0.5">
+                                        {citation.fileName && citation.fileName !== citation.title && (
+                                          <div className="text-[10px]">📄 File: {citation.fileName}</div>
+                                        )}
+                                        {citation.page !== undefined && (
+                                          <div className="text-[10px]">📑 Trang: {citation.page + 1}</div>
+                                        )}
+                                        {citation.line !== undefined && (
+                                          <div className="text-[10px]">📍 Dòng: {citation.line + 1}</div>
+                                        )}
+                                        {citation.content && (
+                                          <div className="text-[10px] mt-1 italic line-clamp-2 text-muted-foreground/80">
+                                            "{citation.content}"
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>

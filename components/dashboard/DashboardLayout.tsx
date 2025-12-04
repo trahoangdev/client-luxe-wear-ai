@@ -291,7 +291,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 w-full border-b bg-background">
         <div className="mx-auto flex h-14 items-center justify-between px-4 md:px-6">
           {/* Left: Logo + workspace name placeholder */}
           <div className="flex items-center gap-3">
@@ -433,9 +433,9 @@ export default function DashboardLayout({
       )}
 
       {/* Body with Sidebar */}
-      <div className="mx-auto flex">
+      <div className="mx-auto flex relative min-h-[calc(100vh-3.5rem)]">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-72 shrink-0 border-r bg-background/50">
+        <aside className="hidden md:block fixed left-0 top-14 w-72 h-[calc(100vh-3.5rem)] border-r bg-background z-30 overflow-y-auto">
           <nav className="p-4">
             {renderNavSection()}
           </nav>
@@ -444,7 +444,7 @@ export default function DashboardLayout({
         {/* Content */}
         <main
           key={currentTenant || 'no-tenant'}
-          className="flex-1 min-w-0 px-4 md:px-6 lg:px-8 py-6 transition-opacity duration-200 dashboard-main-zoom"
+          className="flex-1 min-w-0 px-4 md:px-6 lg:px-8 py-6 transition-opacity duration-200 dashboard-main-zoom md:ml-72"
         >
           <div className="max-w-7xl mx-auto">
             <ErrorBoundary>

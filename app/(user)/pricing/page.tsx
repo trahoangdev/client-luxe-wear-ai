@@ -1,8 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function PricingPage() {
+  // Update document metadata for SEO
+  useEffect(() => {
+    document.title = "Bảng Giá | LuxeWear AI";
+    
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Xem bảng giá các gói dịch vụ LuxeWear AI. Từ gói miễn phí đến gói doanh nghiệp, chọn gói phù hợp với nhu cầu của bạn.');
+  }, []);
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
 
   const plans = [

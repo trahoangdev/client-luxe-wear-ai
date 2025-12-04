@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { chat as chatApi } from "@/services/chatService";
 import { toast } from "sonner";
 import { trackEvent, reportError } from "@/services/observabilityService";
-import type { Msg } from "../types";
+import type { Msg, Citation } from "../types";
 
 export function useChat(agentId: string, context: string) {
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -26,9 +26,15 @@ export function useChat(agentId: string, context: string) {
         (res as { data?: { response?: string; message?: string }; message?: string }).data?.message ||
         (res as { data?: { response?: string; message?: string }; message?: string }).message ||
         "(no response)";
+      const citations = (res as { data?: { citations?: Citation[] } }).data?.citations || [];
       
       // Create placeholder message for streaming
-      const assistantMsg: Msg = { role: "assistant", content: "", ts: Date.now() };
+      const assistantMsg: Msg = { 
+        role: "assistant", 
+        content: "", 
+        ts: Date.now(),
+        citations: citations.length > 0 ? citations : undefined
+      };
       let messageIndex: number;
       setMessages((prev) => {
         const newMessages = [...prev, assistantMsg];
@@ -53,6 +59,7 @@ export function useChat(agentId: string, context: string) {
               updated[messageIndex] = {
                 ...updated[messageIndex],
                 content: reply,
+                citations: citations.length > 0 ? citations : undefined,
               };
             }
             return updated;

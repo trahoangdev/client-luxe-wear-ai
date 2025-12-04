@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GithubIcon, Mail, Lock, Eye, EyeOff, ArrowRight, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { register as apiRegister, saveTokens } from "@/services/authUserService";
 import { useAppDispatch } from "@/store";
 import { setCredentials } from "@/store/authSlice";
@@ -14,6 +14,18 @@ import Link from "next/link";
 type RegisterForm = { name: string; email: string; password: string; confirmPassword: string };
 
 export default function RegisterPage() {
+  // Update document metadata for SEO
+  useEffect(() => {
+    document.title = "Đăng ký | LuxeWear AI";
+    
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Đăng ký tài khoản LuxeWear AI miễn phí và bắt đầu xây dựng AI Agent cho doanh nghiệp của bạn. Không cần thẻ tín dụng.');
+  }, []);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [apiError, setApiError] = useState<string | null>(null);
