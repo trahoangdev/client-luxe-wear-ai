@@ -105,7 +105,7 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
                               )}
                               {citation.content && (
                                 <div className="text-[10px] mt-1 italic line-clamp-2 text-muted-foreground/80">
-                                  "{citation.content}"
+                                  &quot;{citation.content}&quot;
                                 </div>
                               )}
                             </div>
