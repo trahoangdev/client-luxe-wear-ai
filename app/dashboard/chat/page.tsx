@@ -33,6 +33,7 @@ export default function ChatPage() {
     loadConversation,
     deleteConversation: deleteConv,
     saveCurrentConversation,
+    updateConversationTitle,
   } = useConversations(agentId);
 
   const {
@@ -120,9 +121,15 @@ export default function ChatPage() {
     const text = input.trim();
     if (!text) return;
     
-    // Create new conversation if none exists
+    // Create new conversation if none exists - do this BEFORE sending message
+    // so the conversation appears in sidebar immediately
     if (!currentConversationId) {
-      createNewConversation();
+      const newConv = createNewConversation();
+      // Update title immediately from first message
+      if (newConv) {
+        const title = text.slice(0, 50) + (text.length > 50 ? "..." : "");
+        updateConversationTitle(newConv.id, title);
+      }
     }
     
     setInput("");

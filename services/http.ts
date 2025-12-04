@@ -1,6 +1,30 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || "https://server-luxe-wear-ai.onrender.com";
+// Auto-detect localhost for development, fallback to production
+const getApiBaseUrl = () => {
+  // Check if NEXT_PUBLIC_SERVER_URL is explicitly set
+  if (process.env.NEXT_PUBLIC_SERVER_URL) {
+    return process.env.NEXT_PUBLIC_SERVER_URL;
+  }
+  
+  // Auto-detect localhost in browser/client-side
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:3001";
+    }
+  }
+  
+  // For server-side rendering, check NODE_ENV
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3001";
+  }
+  
+  // Fallback to production URL
+  return "https://server-luxe-wear-ai.onrender.com";
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 export const API_PREFIX = "/api";
 
 export interface ApiError {

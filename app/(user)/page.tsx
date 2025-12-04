@@ -1,11 +1,66 @@
 "use client";
+import { useEffect, useState, useRef } from "react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/Footer";
 import Testimonials from "@/components/sections/Testimonials";
 import CtaBanner from "@/components/sections/CtaBanner";
+import { StructuredData } from "@/components/SEO/StructuredData";
+
 export default function InfoPage() {
+  // Structured data for SEO
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "LuxeWear AI",
+    description: "Nền tảng hoàn chỉnh để xây dựng và triển khai các tác nhân hỗ trợ AI cho doanh nghiệp",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://client-luxe-wear-ai.vercel.app",
+    logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://client-luxe-wear-ai.vercel.app"}/logo.png`,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "Customer Service",
+      availableLanguage: ["Vietnamese", "English"],
+    },
+  };
+
+  const softwareApplicationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "LuxeWear AI",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "VND",
+    },
+    description: "Nền tảng AI Agent với RAG, tích hợp dễ dàng và bảo mật cấp doanh nghiệp",
+    featureList: [
+      "AI Agent với RAG",
+      "Tích hợp dễ dàng",
+      "Bảo mật cấp doanh nghiệp",
+      "Multi-channel support",
+      "Advanced analytics",
+    ],
+  };
+
+  // Update document metadata
+  useEffect(() => {
+    document.title = "LuxeWear AI - Nền tảng AI Agent cho Doanh nghiệp";
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'LuxeWear là nền tảng hoàn chỉnh để xây dựng và triển khai các tác nhân hỗ trợ AI cho doanh nghiệp. Tạo AI Agent thông minh với RAG, tích hợp dễ dàng và bảo mật cấp doanh nghiệp.');
+  }, []);
+
   return (
     <>
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={softwareApplicationSchema} />
      
       <section className="py-12 md:py-20">
         <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -236,19 +291,16 @@ export default function InfoPage() {
       {/* Advantages Slider */}
       <AdvantagesSlider />
  
- 
+
       {/* Security */}
       <SecuritySection />
- 
+
       {/* CTA - top footer banner */}
- 
+
     </>
   );
 }
 
-
-import { useState } from "react";
-import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Shield, Pause, Play } from "lucide-react";
 
 function VideoPlayer({
