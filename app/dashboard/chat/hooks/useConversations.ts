@@ -32,11 +32,11 @@ export function useConversations(agentId: string) {
   };
 
   // Create new conversation
-  const createNewConversation = () => {
+  const createNewConversation = (initialTitle: string = "New Conversation") => {
     if (!agentId) return;
     const newConv: Conversation = {
       id: `conv_${Date.now()}`,
-      title: "New Conversation",
+      title: initialTitle,
       messages: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -73,7 +73,7 @@ export function useConversations(agentId: string) {
 
   // Update conversation
   const updateConversation = (convId: string, updates: Partial<Conversation>) => {
-    const updated = conversations.map(c => 
+    const updated = conversations.map(c =>
       c.id === convId ? { ...c, ...updates, updatedAt: Date.now() } : c
     );
     setConversations(updated);
