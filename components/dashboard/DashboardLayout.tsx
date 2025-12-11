@@ -9,16 +9,16 @@ import { logout as apiLogout, clearTokens } from "@/services/authUserService";
 import { resetTenantState } from "@/store/tenantSlice";
 import UserAvatar from "@/components/user-avatar";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
-import { 
-  Bot, 
-  BarChart2, 
-  UserRoundCog, 
-  SlidersHorizontal, 
-  Shield, 
-  MessageSquare, 
-  ArrowLeft, 
-  LogOut, 
-  LayoutDashboard, 
+import {
+  Bot,
+  BarChart2,
+  UserRoundCog,
+  SlidersHorizontal,
+  Shield,
+  MessageSquare,
+  ArrowLeft,
+  LogOut,
+  LayoutDashboard,
   Home,
   Code2,
   Database,
@@ -89,30 +89,30 @@ export default function DashboardLayout({
   // Ordered: Chat → Knowledge → Config → Analytics
   const agentMainNav: NavItem[] = currentAgentId
     ? [
-        // Step 1: Test your agent
-        { href: `/dashboard/chat?agentId=${currentAgentId}`, label: "Chat", icon: MessageSquare },
-        // Step 2: Add knowledge to your agent
-        { href: `/dashboard/knowledge?agentId=${currentAgentId}`, label: "Knowledge", icon: Database },
-        // Step 3: Configure your agent
-        { href: `/dashboard/agents/${currentAgentId}?tab=config`, label: "Config", icon: SlidersHorizontal },
-        // Step 4: Monitor performance
-        { href: `/dashboard/analytics?agentId=${currentAgentId}`, label: "Analytics", icon: BarChart2 },
-      ]
+      // Step 1: Test your agent
+      { href: `/dashboard/chat?agentId=${currentAgentId}`, label: "Chat", icon: MessageSquare },
+      // Step 2: Add knowledge to your agent
+      { href: `/dashboard/knowledge?agentId=${currentAgentId}`, label: "Knowledge", icon: Database },
+      // Step 3: Configure your agent
+      { href: `/dashboard/agents/${currentAgentId}?tab=config`, label: "Config", icon: SlidersHorizontal },
+      // Step 4: Monitor performance
+      { href: `/dashboard/analytics?agentId=${currentAgentId}`, label: "Analytics", icon: BarChart2 },
+    ]
     : [];
 
   const agentAdvancedNav: NavItem[] = currentAgentId
     ? [
-        // Step 5: Embed in your website
-        { href: `/dashboard/agents/${currentAgentId}?tab=embed`, label: "Embed Widget", icon: Code2 },
-        // Step 6: Integrate via API
-        { href: `/dashboard/agents/${currentAgentId}?tab=api`, label: "API & Security", icon: Shield },
-      ]
+      // Step 5: Embed in your website
+      { href: `/dashboard/agents/${currentAgentId}?tab=embed`, label: "Embed Widget", icon: Code2 },
+      // Step 6: Integrate via API
+      { href: `/dashboard/agents/${currentAgentId}?tab=api`, label: "API & Security", icon: Shield },
+    ]
     : [];
 
   const agentBackNav: NavItem[] = currentAgentId
     ? [
-        { href: "/dashboard", label: "Back to Agents", icon: ArrowLeft },
-      ]
+      { href: "/dashboard", label: "Back to Agents", icon: ArrowLeft },
+    ]
     : [];
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -171,11 +171,10 @@ export default function DashboardLayout({
         href={item.href}
         onClick={onClick}
         aria-current={isActive ? "page" : undefined}
-        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-          isActive 
-            ? "bg-primary/10 text-primary border border-primary/20 shadow-sm" 
+        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive
+            ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
-        }`}
+          }`}
       >
         {Icon ? <Icon className="h-4 w-4 shrink-0" /> : null}
         <span>{item.label}</span>
@@ -198,7 +197,7 @@ export default function DashboardLayout({
                 {agentMainNav.map((item) => renderNavItem(item, () => setSidebarOpen(false)))}
               </div>
             </div>
-            
+
             {agentAdvancedNav.length > 0 && (
               <div>
                 <div className="px-3 mb-2">
@@ -273,7 +272,8 @@ export default function DashboardLayout({
       clearTokens();
       setMenuOpen(false);
       setLogoutDialogOpen(false);
-      router.push("/");
+      // Force hard redirect to home page
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
       // Still clear local state even if API call fails
@@ -282,7 +282,8 @@ export default function DashboardLayout({
       clearTokens();
       setMenuOpen(false);
       setLogoutDialogOpen(false);
-      router.push("/");
+      // Force hard redirect to home page
+      window.location.href = "/";
     } finally {
       setLoggingOut(false);
     }
@@ -319,8 +320,8 @@ export default function DashboardLayout({
             <div className="hidden sm:block">
               <TenantSwitcher />
             </div>
-            <Link 
-              href="/docs/user-guides" 
+            <Link
+              href="/docs/user-guides"
               className="hidden md:inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
             >
               <FileText className="h-4 w-4" />
@@ -329,8 +330,8 @@ export default function DashboardLayout({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="hidden md:inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -351,7 +352,7 @@ export default function DashboardLayout({
                   <Link href="/dashboard/pages/settings" className="flex items-center gap-2 cursor-pointer">
                     <Settings className="h-4 w-4" />
                     <span>General Settings</span>
-            </Link>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -361,7 +362,7 @@ export default function DashboardLayout({
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-label="Open profile menu"
               >
-                <UserAvatar image={user?.avatar_url || undefined} fallback={(user?.name || user?.email || "U").slice(0,2).toUpperCase()} className="h-7 w-7" />
+                <UserAvatar image={user?.avatar_url || undefined} fallback={(user?.name || user?.email || "U").slice(0, 2).toUpperCase()} className="h-7 w-7" />
               </button>
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-72 rounded-2xl border bg-background shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
@@ -373,9 +374,9 @@ export default function DashboardLayout({
                   <div className="p-2">
                     <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors">Dashboard</Link>
                     {isAdmin && (
-                      <Link 
-                        href="/admin/dashboard" 
-                        onClick={() => setMenuOpen(false)} 
+                      <Link
+                        href="/admin/dashboard"
+                        onClick={() => setMenuOpen(false)}
                         className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
                       >
                         <LayoutDashboard className="h-4 w-4" />
@@ -404,11 +405,11 @@ export default function DashboardLayout({
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside 
+          <aside
             ref={sidebarRef}
             className="fixed left-0 top-0 h-full w-64 bg-background border-r shadow-xl animate-in slide-in-from-left duration-300"
           >

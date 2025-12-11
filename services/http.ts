@@ -6,7 +6,7 @@ const getApiBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_SERVER_URL) {
     return process.env.NEXT_PUBLIC_SERVER_URL;
   }
-  
+
   // Auto-detect localhost in browser/client-side
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
@@ -14,12 +14,12 @@ const getApiBaseUrl = () => {
       return "http://localhost:3001";
     }
   }
-  
+
   // For server-side rendering, check NODE_ENV
   if (process.env.NODE_ENV === "development") {
     return "http://localhost:3001";
   }
-  
+
   // Fallback to production URL
   return "https://server-luxe-wear-ai.onrender.com";
 };
@@ -111,6 +111,10 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
     if (error?.response?.status === 401 && original && !original._retry) {
+      // Don't retry if it's a login request (prevents infinite loop on invalid credentials)
+      if (original.url?.includes("/auth/login")) {
+        return Promise.reject(normalizeApiError(error));
+      }
       original._retry = true;
       const doRefresh = async () => {
         const rToken = getRefreshToken();

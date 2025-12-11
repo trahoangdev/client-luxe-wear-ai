@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useAgents } from "./hooks/useAgents";
@@ -23,6 +23,8 @@ export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+
+  const isCreatingConvRef = useRef(false);
 
   const { agents, agentId, setAgentId } = useAgents(initialAgentId);
   const {
@@ -48,6 +50,11 @@ export default function ChatPage() {
   // Load conversation messages when switching conversations
   useEffect(() => {
     if (currentConversationId) {
+      // Skip loading if we just created this conversation (to preserve the new message being sent)
+      if (isCreatingConvRef.current) {
+        isCreatingConvRef.current = false;
+        return;
+      }
       const loadedMessages = loadConversation(currentConversationId);
       setMessages(loadedMessages);
     }
@@ -120,18 +127,15 @@ export default function ChatPage() {
   const handleSend = async () => {
     const text = input.trim();
     if (!text) return;
-    
+
     // Create new conversation if none exists - do this BEFORE sending message
     // so the conversation appears in sidebar immediately
     if (!currentConversationId) {
-      const newConv = createNewConversation();
-      // Update title immediately from first message
-      if (newConv) {
-        const title = text.slice(0, 50) + (text.length > 50 ? "..." : "");
-        updateConversationTitle(newConv.id, title);
-      }
+      isCreatingConvRef.current = true;
+      const title = text.slice(0, 50) + (text.length > 50 ? "..." : "");
+      createNewConversation(title);
     }
-    
+
     setInput("");
     await sendMessage(text);
   };
