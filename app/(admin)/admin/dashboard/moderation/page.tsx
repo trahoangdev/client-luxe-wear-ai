@@ -1,40 +1,48 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, Tag, Space } from 'antd';
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   Search,
-  Eye,
   CheckCircle,
   XCircle,
-  Ban,
+  AlertTriangle,
   FileText,
-  Bot,
-  Database,
-  AlertTriangle
+  Ban
 } from 'lucide-react';
-import { 
-  getModerationQueue, 
-  getModerationItem, 
-  approveModerationItem, 
+import {
+  getModerationQueue,
+  getModerationItem,
+  approveModerationItem,
   rejectModerationItem,
   getModerationStats
 } from '@/services/adminService';
 import { adminUpdateUser } from '@/services/userService';
+import { DataTable } from "@/components/admin/users/data-table";
+import { columns } from "@/components/admin/moderation/columns";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { PaginationState, SortingState, ColumnFiltersState } from "@tanstack/react-table";
 
 export default function AdminContentModerationPage() {
   const [loading, setLoading] = useState(true);
   const [queue, setQueue] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
+
+  // Table State
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const [total, setTotal] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+
+  // Filters
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('pending');
@@ -45,22 +53,24 @@ export default function AdminContentModerationPage() {
   const loadQueue = async () => {
     setLoading(true);
     try {
+      const page = pagination.pageIndex + 1;
+      const perPage = pagination.pageSize;
+
       const [queueRes, statsRes] = await Promise.all([
-        getModerationQueue({ 
-          page, 
-          perPage, 
+        getModerationQueue({
+          page,
+          perPage,
           type: typeFilter !== 'all' ? typeFilter : undefined,
           status: statusFilter !== 'all' ? statusFilter : undefined,
         }).catch(() => ({ data: { queue: [], pagination: { total: 0 } } })),
         getModerationStats().catch(() => null),
       ]);
-      
+
       // Parse queue response
       const body = (queueRes as any)?.data || queueRes;
       let queueList: any[] = [];
       let paginationTotal = 0;
 
-      // Try different response structures
       if (Array.isArray(body)) {
         queueList = body;
         paginationTotal = body.length;
@@ -78,17 +88,15 @@ export default function AdminContentModerationPage() {
 
       setQueue(queueList);
       setTotal(paginationTotal);
-      
-      // Parse stats response
+      setPageCount(Math.ceil(paginationTotal / perPage));
+
       const statsBody = (statsRes as any)?.data || statsRes;
       setModerationStats(statsBody);
     } catch (e: any) {
       console.error('Failed to load moderation queue:', e);
-      // If API fails, try to show empty state gracefully
       if (e?.response?.status === 404 || e?.response?.status === 500) {
         setQueue([]);
         setTotal(0);
-        // Don't show error toast for 404/500, just show empty state
       } else {
         toast.error(e?.response?.data?.message || 'Failed to load moderation queue');
       }
@@ -99,7 +107,7 @@ export default function AdminContentModerationPage() {
 
   useEffect(() => {
     loadQueue();
-  }, [page, perPage, typeFilter, statusFilter]);
+  }, [pagination, typeFilter, statusFilter]);
 
   const handleViewItem = async (item: any) => {
     setSelectedItem(item);
@@ -109,17 +117,16 @@ export default function AdminContentModerationPage() {
       const detailData = (detail as any)?.data || detail;
       setSelectedItem({ ...item, ...detailData });
     } catch (e: any) {
-      // If detail fetch fails, just use the item from list
       console.error('Failed to load moderation item details:', e);
     }
   };
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = async (item: any) => {
     try {
-      await approveModerationItem(id);
+      await approveModerationItem(item.id);
       toast.success('Content approved');
       loadQueue();
-      if (selectedItem?.id === id) {
+      if (selectedItem?.id === item.id) {
         setViewOpen(false);
       }
     } catch (e: any) {
@@ -127,13 +134,13 @@ export default function AdminContentModerationPage() {
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (item: any) => {
     if (!confirm('Reject and remove this content?')) return;
     try {
-      await rejectModerationItem(id);
+      await rejectModerationItem(item.id);
       toast.success('Content rejected and removed');
       loadQueue();
-      if (selectedItem?.id === id) {
+      if (selectedItem?.id === item.id) {
         setViewOpen(false);
       }
     } catch (e: any) {
@@ -152,94 +159,6 @@ export default function AdminContentModerationPage() {
     }
   };
 
-  const getTypeIcon = (type: string) => {
-    if (type === 'agent') return Bot;
-    if (type === 'knowledge') return Database;
-    return FileText;
-  };
-
-  const columns = [
-    {
-      title: 'Type',
-      key: 'type',
-      render: (_: any, record: any) => {
-        const Icon = getTypeIcon(record.type);
-        return (
-          <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-muted-foreground" />
-            <Tag>{record.type}</Tag>
-          </div>
-        );
-      },
-    },
-    {
-      title: 'Content',
-      key: 'content',
-      render: (_: any, record: any) => (
-        <div className="max-w-[300px]">
-          <p className="text-sm font-medium truncate">
-            {record.content?.name || record.content?.title || 'Unknown'}
-          </p>
-          {record.content?.description && (
-            <p className="text-xs text-muted-foreground truncate">{record.content.description}</p>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: 'Reason',
-      key: 'reason',
-      render: (_: any, record: any) => (
-        <div className="max-w-[200px] truncate text-sm">{record.reason}</div>
-      ),
-    },
-    {
-      title: 'Reported By',
-      key: 'reportedBy',
-      render: (_: any, record: any) => (
-        <div className="text-sm">{record.reportedBy?.email || 'System'}</div>
-      ),
-    },
-    {
-      title: 'Status',
-      key: 'status',
-      render: (_: any, record: any) => {
-        const colors: Record<string, string> = {
-          pending: 'orange',
-          approved: 'green',
-          rejected: 'red',
-        };
-        return <Tag color={colors[record.status] || 'default'}>{record.status}</Tag>;
-      },
-    },
-    {
-      title: 'Timestamp',
-      key: 'timestamp',
-      render: (_: any, record: any) => (
-        <div>
-          <div className="text-sm">{new Date(record.timestamp).toLocaleDateString()}</div>
-          <div className="text-xs text-muted-foreground">{new Date(record.timestamp).toLocaleTimeString()}</div>
-        </div>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: any) => (
-        <Space>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleViewItem(record)}
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Review
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
   const filteredQueue = queue.filter(item => {
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -251,12 +170,9 @@ export default function AdminContentModerationPage() {
         item.reportedBy?.email?.toLowerCase().includes(q)
       );
     }
-    if (statusFilter !== 'all' && item.status !== statusFilter) return false;
-    if (typeFilter !== 'all' && item.type !== typeFilter) return false;
     return true;
   });
 
-  // Use API stats if available, otherwise calculate from queue list
   const stats = moderationStats || {
     pending: queue.filter(i => i.status === 'pending').length,
     approved: queue.filter(i => i.status === 'approved').length,
@@ -323,14 +239,14 @@ export default function AdminContentModerationPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by content, reason, or reporter" 
-              value={query} 
-              onChange={(e) => setQuery(e.target.value)} 
-              className="pl-10" 
+            <Input
+              placeholder="Search by content, reason, or reporter"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-10"
             />
           </div>
-          <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+          <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPagination(p => ({ ...p, pageIndex: 0 })); }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Content type" />
             </SelectTrigger>
@@ -340,7 +256,7 @@ export default function AdminContentModerationPage() {
               <SelectItem value="knowledge">Knowledge</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPagination(p => ({ ...p, pageIndex: 0 })); }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -351,37 +267,31 @@ export default function AdminContentModerationPage() {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={String(perPage)} onValueChange={(v) => { setPerPage(parseInt(v)); setPage(1); }}>
-            <SelectTrigger className="w-[110px]">
-              <SelectValue placeholder="Per page" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 30, 50, 100].map((n) => (
-                <SelectItem key={n} value={String(n)}>{n}/page</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </Card>
 
       {/* Moderation Queue Table */}
-      <Card className="rounded-2xl border overflow-x-auto p-2">
-        <Table
-          rowKey="id"
-          size="middle"
-          columns={columns as any}
-          dataSource={filteredQueue}
-          loading={loading}
-          pagination={{ 
-            current: page, 
-            pageSize: perPage, 
-            total: total, 
-            showSizeChanger: false, 
-            onChange: (p) => setPage(p) 
-          }}
-          scroll={{ x: 1200 }}
-        />
-      </Card>
+      <div className="hidden h-full flex-1 flex-col space-y-8 md:flex">
+        {loading ? (
+          <TableSkeleton rowCount={pagination.pageSize} columnCount={6} />
+        ) : (
+          <DataTable
+            data={filteredQueue}
+            columns={columns}
+            pageCount={pageCount}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            onView={handleViewItem}
+            meta={{
+              onApprove: handleApprove,
+              onReject: handleReject,
+              onBanUser: handleBanUser
+            }}
+          />
+        )}
+      </div>
 
       {/* Review Dialog */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
@@ -398,15 +308,16 @@ export default function AdminContentModerationPage() {
                   <div>
                     <span className="font-medium text-muted-foreground">Type:</span>
                     <p className="mt-1">
-                      <Tag>{selectedItem.type}</Tag>
+                      <Badge>{selectedItem.type}</Badge>
                     </p>
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">Status:</span>
                     <p className="mt-1">
-                      <Tag color={selectedItem.status === 'pending' ? 'orange' : selectedItem.status === 'approved' ? 'green' : 'red'}>
+                      <Badge variant={selectedItem.status === 'pending' ? 'secondary' : selectedItem.status === 'approved' ? 'default' : 'destructive'}
+                        className={selectedItem.status === 'pending' ? 'bg-orange-100 text-orange-800' : ''}>
                         {selectedItem.status}
-                      </Tag>
+                      </Badge>
                     </p>
                   </div>
                   <div className="col-span-2">
@@ -451,23 +362,23 @@ export default function AdminContentModerationPage() {
             {selectedItem && selectedItem.status === 'pending' && (
               <>
                 {selectedItem.content?.owner?.id && (
-                  <Button 
-                    variant="destructive" 
+                  <Button
+                    variant="destructive"
                     onClick={() => handleBanUser(selectedItem.content.owner.id)}
                   >
                     <Ban className="h-4 w-4 mr-2" />
                     Ban User
                   </Button>
                 )}
-                <Button 
-                  variant="destructive" 
-                  onClick={() => handleReject(selectedItem.id)}
+                <Button
+                  variant="destructive"
+                  onClick={() => handleReject(selectedItem)}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
                   Reject
                 </Button>
-                <Button 
-                  onClick={() => handleApprove(selectedItem.id)}
+                <Button
+                  onClick={() => handleApprove(selectedItem)}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve
@@ -480,4 +391,3 @@ export default function AdminContentModerationPage() {
     </div>
   );
 }
-

@@ -71,8 +71,31 @@ export const removeTenantMember = async (tenantId: string, userId: string): Prom
 };
 
 // Admin APIs
-export const adminListAllTenants = async (params?: { page?: number; perPage?: number; plan?: string; status?: string; q?: string }): Promise<any> => {
-  return http.get('/tenants/admin/all', { params });
+export interface AdminTenant {
+  id: string;
+  name: string;
+  plan: 'free' | 'pro' | 'enterprise';
+  status: 'active' | 'inactive' | 'suspended';
+  created_at?: string;
+  updated_at?: string;
+  owner_id?: string;
+}
+
+export interface AdminTenantListResponse {
+  data: {
+    tenants: AdminTenant[];
+    pagination: {
+      page: number;
+      perPage: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
+
+export const adminListAllTenants = async (params?: { page?: number; perPage?: number; plan?: string; status?: string; q?: string }): Promise<AdminTenantListResponse> => {
+  const res = await http.get('/tenants/admin/all', { params });
+  return res.data;
 };
 
 export const adminGetTenantStats = async (): Promise<any> => {

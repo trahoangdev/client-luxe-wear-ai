@@ -1,6 +1,31 @@
 import api from "./http";
 
 // Activity Logs
+export interface ActivityLog {
+  id: string;
+  action: string;
+  actor?: {
+    id: string;
+    name?: string;
+    email?: string;
+  };
+  details?: any;
+  created_at: string;
+  [key: string]: any;
+}
+
+export interface ActivityLogListResponse {
+  data: {
+    logs: ActivityLog[];
+    pagination: {
+      page: number;
+      perPage: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
+
 export async function getActivityLogs(params?: {
   page?: number;
   perPage?: number;
@@ -9,7 +34,7 @@ export async function getActivityLogs(params?: {
   dateRange?: string;
   startDate?: string;
   endDate?: string;
-}) {
+}): Promise<ActivityLogListResponse> {
   const res = await api.get(`/admin/activity-logs`, { params });
   return res.data;
 }

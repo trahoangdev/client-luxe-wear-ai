@@ -5,13 +5,14 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, Tag } from 'antd';
-import { toast } from 'sonner';
-import { 
-  RefreshCw, 
+import { DataTable } from '@/components/admin/users/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from "@/components/ui/badge";
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import {
+  RefreshCw,
   Search,
   Download,
-  Filter,
   Activity,
   User,
   Bot,
@@ -20,9 +21,10 @@ import {
   Settings,
   AlertCircle
 } from 'lucide-react';
-import { getActivityLogs, exportActivityLogs } from '@/services/adminService';
-import { adminListUsers } from '@/services/userService';
-import { adminListAllAgents } from '@/services/agentService';
+import { toast } from "sonner";
+import { getActivityLogs, exportActivityLogs, type ActivityLog } from '@/services/adminService';
+import { adminListUsers, type AdminUserListResponse } from '@/services/userService';
+import { adminListAllAgents, type AdminAgentListResponse } from '@/services/agentService';
 
 export default function AdminActivityLogsPage() {
   const [loading, setLoading] = useState(true);
@@ -41,52 +43,52 @@ export default function AdminActivityLogsPage() {
       // Try to get activity logs from API
       let logsList: any[] = [];
       let totalCount = 0;
-      
+
       try {
-        const res = await getActivityLogs({ 
-          page, 
-          perPage, 
+        const res = await getActivityLogs({
+          page,
+          perPage,
           action: actionFilter !== 'all' ? actionFilter : undefined,
           userId: userFilter !== 'all' ? userFilter : undefined,
           dateRange: dateRange !== 'all' ? dateRange : undefined,
         });
-        
+
         // Handle different response structures
         const body = (res as any)?.data || res;
         const payload = body?.data || body;
-        
+
         // Try multiple possible field names for logs
-        logsList = payload?.logs || 
-                   payload?.activities || 
-                   payload?.activity_logs ||
-                   (Array.isArray(payload) ? payload : []);
-        
+        logsList = payload?.logs ||
+          payload?.activities ||
+          payload?.activity_logs ||
+          (Array.isArray(payload) ? payload : []);
+
         // Handle pagination
-        const pagination = payload?.pagination || 
-                          body?.pagination || 
-                          payload?.meta ||
-                          { total: logsList.length };
-        totalCount = pagination.total || 
-                     pagination.totalCount || 
-                     pagination.count ||
-                     logsList.length;
+        const pagination = payload?.pagination ||
+          body?.pagination ||
+          payload?.meta ||
+          { total: logsList.length };
+        totalCount = pagination.total ||
+          pagination.totalCount ||
+          pagination.count ||
+          logsList.length;
       } catch (apiError: any) {
         // If API not available (404, 500, or network error), generate logs from users and agents
-        const isApiUnavailable = 
-          apiError?.response?.status === 404 || 
+        const isApiUnavailable =
+          apiError?.response?.status === 404 ||
           apiError?.response?.status === 500 ||
           apiError?.status === 404 ||
           apiError?.message?.includes('Route not found') ||
           apiError?.message?.includes('404');
-        
+
         if (isApiUnavailable) {
           const [usersRes, agentsRes] = await Promise.all([
-            adminListUsers({ page: 1, perPage: 1000 }).catch(() => ({ data: { users: [] } })),
-            adminListAllAgents({ page: 1, perPage: 1000 }).catch(() => ({ data: { agents: [] } })),
+            adminListUsers({ page: 1, perPage: 1000 }).catch(() => ({ users: [], total: 0 } as unknown as AdminUserListResponse)),
+            adminListAllAgents({ page: 1, perPage: 1000 }).catch(() => ({ data: { agents: [] } } as unknown as AdminAgentListResponse)),
           ]);
 
-          const users = (usersRes as any)?.data?.users || (usersRes as any)?.users || [];
-          const agents = (agentsRes as any)?.data?.agents || (agentsRes as any)?.agents || [];
+          const users = usersRes.users || [];
+          const agents = agentsRes.data?.agents || [];
 
           // Calculate date range
           const now = new Date();
@@ -103,12 +105,12 @@ export default function AdminActivityLogsPage() {
 
           // Generate activity logs from users
           const userLogs = users
-            .filter((u: any) => {
-              const created = u.created_at || u.createdAt;
+            .filter((u) => {
+              const created = u.created_at;
               if (!created) return false;
               return new Date(created) >= startDate;
             })
-            .map((u: any) => ({
+            .map((u) => ({
               id: `user-${u.id}`,
               action: 'user_registered',
               actor: {
@@ -117,7 +119,8 @@ export default function AdminActivityLogsPage() {
                 id: u.id,
               },
               target: `User: ${u.name || u.email}`,
-              timestamp: u.created_at || u.createdAt,
+              timestamp: u.created_at,
+              created_at: u.created_at,
               metadata: {
                 userId: u.id,
                 email: u.email,
@@ -126,12 +129,12 @@ export default function AdminActivityLogsPage() {
 
           // Generate activity logs from agents
           const agentLogs = agents
-            .filter((a: any) => {
-              const created = a.created_at || a.createdAt;
+            .filter((a) => {
+              const created = a.created_at;
               if (!created) return false;
               return new Date(created) >= startDate;
             })
-            .map((a: any) => ({
+            .map((a) => ({
               id: `agent-${a.id}`,
               action: 'agent_created',
               actor: {
@@ -140,7 +143,8 @@ export default function AdminActivityLogsPage() {
                 id: a.owner?.id,
               },
               target: `Agent: ${a.name}`,
-              timestamp: a.created_at || a.createdAt,
+              timestamp: a.created_at,
+              created_at: a.created_at,
               metadata: {
                 agentId: a.id,
                 agentName: a.name,
@@ -148,8 +152,8 @@ export default function AdminActivityLogsPage() {
             }));
 
           // Combine and sort by timestamp
-          let allLogs = [...userLogs, ...agentLogs].sort((a, b) => 
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          let allLogs = [...userLogs, ...agentLogs].sort((a, b) =>
+            new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
           );
 
           // Apply filters
@@ -173,14 +177,14 @@ export default function AdminActivityLogsPage() {
           const startIndex = (page - 1) * perPage;
           const endIndex = startIndex + perPage;
           logsList = allLogs.slice(startIndex, endIndex);
-          
+
           // Don't show error toast if fallback was successful
           console.info('Activity logs API not available, using fallback data');
         } else {
           throw apiError;
         }
       }
-      
+
       setLogs(Array.isArray(logsList) ? logsList : []);
       setTotal(totalCount);
     } catch (e: any) {
@@ -188,7 +192,8 @@ export default function AdminActivityLogsPage() {
       // Only show error if it's not a 404 (which we handle with fallback)
       const is404 = e?.response?.status === 404 || e?.status === 404 || e?.message?.includes('404');
       if (!is404) {
-        toast.error(e?.response?.data?.message || e?.message || 'Failed to load activity logs');
+        const msg = (e as any)?.response?.data?.message || (e as any)?.message || 'Failed to load activity logs';
+        toast.error(msg);
       }
       setLogs([]);
       setTotal(0);
@@ -212,69 +217,77 @@ export default function AdminActivityLogsPage() {
     return Settings;
   };
 
-  const getActionColor = (action: string) => {
-    if (action.includes('create')) return 'green';
-    if (action.includes('update')) return 'blue';
-    if (action.includes('delete')) return 'red';
-    if (action.includes('login') || action.includes('logout')) return 'purple';
-    if (action.includes('error')) return 'red';
-    return 'default';
-  };
 
-  const columns = [
+
+  // Column Definitions
+  const columns: ColumnDef<ActivityLog>[] = [
     {
-      title: 'Action',
-      key: 'action',
-      render: (_: any, record: any) => {
-        const Icon = getActionIcon(record.action);
+      accessorKey: "action",
+      header: "Action",
+      cell: ({ row }) => {
+        const action = row.original.action;
+        const Icon = getActionIcon(action);
+        let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+
+        if (action.includes('create')) variant = "default"; // green-ish in theme? default is usually heavy
+        else if (action.includes('update')) variant = "secondary";
+        else if (action.includes('delete') || action.includes('error')) variant = "destructive";
+        else variant = "outline";
+
         return (
           <div className="flex items-center gap-2">
             <Icon className="h-4 w-4 text-muted-foreground" />
-            <Tag color={getActionColor(record.action)}>{record.action}</Tag>
+            <Badge variant={variant}>{action}</Badge>
           </div>
         );
       },
     },
     {
-      title: 'Actor',
-      key: 'actor',
-      render: (_: any, record: any) => (
-        <div>
-          <p className="text-sm font-medium">{record.actor?.name || record.actor?.email || 'System'}</p>
-          {record.actor?.email && record.actor?.name && (
-            <p className="text-xs text-muted-foreground">{record.actor.email}</p>
-          )}
-        </div>
-      ),
+      accessorKey: "actor",
+      header: "Actor",
+      cell: ({ row }) => {
+        const actor = row.original.actor;
+        return (
+          <div className="flex flex-col">
+            <span className="font-medium text-sm">{actor?.name || actor?.email || 'System'}</span>
+            {actor?.email && actor.name && (
+              <span className="text-xs text-muted-foreground">{actor.email}</span>
+            )}
+          </div>
+        )
+      }
     },
     {
-      title: 'Target',
-      key: 'target',
-      render: (_: any, record: any) => (
-        <div className="max-w-[300px] truncate">{record.target || '-'}</div>
-      ),
+      accessorKey: "target",
+      header: "Target",
+      cell: ({ row }) => <div className="max-w-[300px] truncate" title={row.original.target}>{row.original.target || '-'}</div>
     },
     {
-      title: 'Timestamp',
-      key: 'timestamp',
-      render: (_: any, record: any) => (
-        <div>
-          <div className="text-sm">{new Date(record.timestamp).toLocaleDateString()}</div>
-          <div className="text-xs text-muted-foreground">{new Date(record.timestamp).toLocaleTimeString()}</div>
-        </div>
-      ),
+      accessorKey: "created_at",
+      header: "Timestamp",
+      cell: ({ row }) => {
+        const date = new Date(row.original.created_at || row.original.timestamp);
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm">{date.toLocaleDateString()}</span>
+            <span className="text-xs text-muted-foreground">{date.toLocaleTimeString()}</span>
+          </div>
+        )
+      }
     },
     {
-      title: 'Details',
-      key: 'details',
-      render: (_: any, record: any) => (
-        <div className="text-xs text-muted-foreground">
-          {record.metadata?.ip && <div>IP: {record.metadata.ip}</div>}
-          {record.metadata?.agentId && <div>Agent ID: {record.metadata.agentId}</div>}
-          {record.metadata?.userId && <div>User ID: {record.metadata.userId}</div>}
-        </div>
-      ),
-    },
+      id: "details",
+      header: "Details",
+      cell: ({ row }) => {
+        const meta = row.original.metadata || row.original.details;
+        return (
+          <div className="text-xs text-muted-foreground max-w-[200px] truncate">
+            {meta?.ip && <span className="mr-2">IP: {meta.ip}</span>}
+            {meta?.agentId && <span>Agent: {meta.agentId}</span>}
+          </div>
+        )
+      }
+    }
   ];
 
   const filteredLogs = logs.filter(log => {
@@ -303,8 +316,8 @@ export default function AdminActivityLogsPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={async () => {
               try {
@@ -312,7 +325,7 @@ export default function AdminActivityLogsPage() {
                 const now = new Date();
                 let startDate: Date | undefined;
                 let endDate: Date | undefined = now;
-                
+
                 if (dateRange === '24h') {
                   startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
                 } else if (dateRange === '7d') {
@@ -323,7 +336,7 @@ export default function AdminActivityLogsPage() {
                   startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
                 }
 
-                const blob = await exportActivityLogs({ 
+                const blob = await exportActivityLogs({
                   format: 'csv',
                   startDate: startDate?.toISOString(),
                   endDate: endDate?.toISOString(),
@@ -338,7 +351,8 @@ export default function AdminActivityLogsPage() {
                 document.body.removeChild(a);
                 toast.success('Activity logs exported');
               } catch (e: any) {
-                toast.error(e?.response?.data?.message || 'Failed to export logs');
+                const msg = e?.response?.data?.message || 'Failed to export logs';
+                toast.error(msg);
               }
             }}
           >
@@ -353,11 +367,11 @@ export default function AdminActivityLogsPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by action, actor, or target" 
-              value={query} 
-              onChange={(e) => setQuery(e.target.value)} 
-              className="pl-10" 
+            <Input
+              placeholder="Search by action, actor, or target"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-10"
             />
           </div>
           <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setPage(1); }}>
@@ -398,22 +412,22 @@ export default function AdminActivityLogsPage() {
       </Card>
 
       {/* Activity Logs Table */}
-      <Card className="rounded-2xl border overflow-x-auto p-2">
-        <Table
-          rowKey="id"
-          size="middle"
-          columns={columns as any}
-          dataSource={filteredLogs}
-          loading={loading}
-          pagination={{ 
-            current: page, 
-            pageSize: perPage, 
-            total: total, 
-            showSizeChanger: false, 
-            onChange: (p) => setPage(p) 
-          }}
-          scroll={{ x: 1200 }}
-        />
+      <Card className="rounded-2xl border p-2">
+        {loading ? (
+          <TableSkeleton rowCount={perPage} columnCount={5} />
+        ) : (
+          <DataTable
+            data={filteredLogs}
+            columns={columns}
+            pageCount={Math.ceil(total / perPage)}
+            pagination={{ pageIndex: page - 1, pageSize: perPage }}
+            onPaginationChange={(updater) => {
+              const nextState = typeof updater === 'function' ? updater({ pageIndex: page - 1, pageSize: perPage }) : updater;
+              setPage(nextState.pageIndex + 1);
+              setPerPage(nextState.pageSize);
+            }}
+          />
+        )}
       </Card>
 
       {/* Summary Stats */}

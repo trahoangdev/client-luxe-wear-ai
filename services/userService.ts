@@ -55,6 +55,10 @@ export async function adminListUsers(params?: {
   page?: number;
   perPage?: number;
   q?: string;
+  role?: string;
+  is_active?: boolean;
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }): Promise<AdminUserListResponse> {
   const { q, ...rest } = params || {};
 
@@ -88,5 +92,15 @@ export async function adminResetPassword(userId: string, newPassword?: string) {
   const res = await api.put(`/users/${userId}/password`, {
     newPassword: newPassword || "Temp#" + Math.random().toString(36).slice(2, 8),
   });
+  return res.data;
+}
+
+export async function adminBulkDeleteUsers(userIds: string[]) {
+  const res = await api.delete(`/users/bulk`, { data: { userIds } });
+  return res.data;
+}
+
+export async function adminBulkUpdateUsers(userIds: string[], data: { role?: string; is_active?: boolean }) {
+  const res = await api.put(`/users/bulk`, { userIds, data });
   return res.data;
 }

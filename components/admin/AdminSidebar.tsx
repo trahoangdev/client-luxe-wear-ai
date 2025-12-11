@@ -1,13 +1,14 @@
 "use client";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Bot, 
-  Database, 
-  Building2, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  Bot,
+  Database,
+  Building2,
+  BarChart3,
+  Settings,
   FileText,
+  Activity,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,57 +16,57 @@ import { cn } from "@/lib/utils";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  
+
   const nav = [
-    { 
-      href: "/admin/dashboard", 
-      label: "Dashboard", 
+    {
+      href: "/admin/dashboard",
+      label: "Dashboard",
       icon: LayoutDashboard,
       exact: true,
     },
-    { 
-      href: "/admin/dashboard/user", 
-      label: "User Management", 
+    {
+      href: "/admin/dashboard/user",
+      label: "User Management",
       icon: Users,
     },
-    { 
-      href: "/admin/dashboard/agent", 
-      label: "Agent Management", 
+    {
+      href: "/admin/dashboard/agent",
+      label: "Agent Management",
       icon: Bot,
     },
-    { 
-      href: "/admin/dashboard/knowledge", 
-      label: "Knowledge Management", 
+    {
+      href: "/admin/dashboard/knowledge",
+      label: "Knowledge Management",
       icon: Database,
     },
-    { 
-      href: "/admin/dashboard/tenant", 
-      label: "Tenant Management", 
+    {
+      href: "/admin/dashboard/tenant",
+      label: "Tenant Management",
       icon: Building2,
     },
-    { 
-      href: "/admin/dashboard/analytics", 
-      label: "System Analytics", 
+    {
+      href: "/admin/dashboard/analytics",
+      label: "System Analytics",
       icon: BarChart3,
     },
-    // { 
-    //   href: "/admin/dashboard/activity", 
-    //   label: "Activity Logs", 
-    //   icon: Activity,
-    // },
+    {
+      href: "/admin/dashboard/activity",
+      label: "Activity Logs",
+      icon: Activity,
+    },
     // { 
     //   href: "/admin/dashboard/errors", 
     //   label: "Error Monitoring", 
     //   icon: AlertTriangle,
     // },
-    { 
-      href: "/admin/dashboard/moderation", 
-      label: "Content Moderation", 
+    {
+      href: "/admin/dashboard/moderation",
+      label: "Content Moderation",
       icon: FileText,
     },
-    { 
-      href: "/admin/settings", 
-      label: "System Settings", 
+    {
+      href: "/admin/settings",
+      label: "System Settings",
       icon: Settings,
     },
   ];

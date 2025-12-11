@@ -53,8 +53,33 @@ export async function getUploadProgress(sessionId: string) {
   return res.data;
 }
 
+export interface AdminKnowledge {
+  id: string;
+  title?: string;
+  content?: string;
+  user_id?: string;
+  agent_id?: string;
+  tenant_id?: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: Record<string, any>;
+}
+
+export interface AdminKnowledgeListResponse {
+  data: {
+    knowledge: AdminKnowledge[];
+    pagination: {
+      page: number;
+      perPage: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+  message?: string;
+}
+
 // Admin APIs
-export async function adminListAllKnowledge(params: { page?: number; perPage?: number; agentId?: string; userId?: string; tenantId?: string }) {
+export async function adminListAllKnowledge(params: { page?: number; perPage?: number; agentId?: string; userId?: string; tenantId?: string }): Promise<AdminKnowledgeListResponse> {
   const res = await api.get(`/knowledge/admin/all`, { params });
   return res.data;
 }
