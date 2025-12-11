@@ -5,9 +5,8 @@ import { Label } from "@/components/ui/label";
 import { GithubIcon, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { login as apiLogin, saveTokens } from "@/services/authUserService";
 import { useAppDispatch } from "@/store";
 import { setCredentials } from "@/store/authSlice";
@@ -16,6 +15,18 @@ import { useForm } from "react-hook-form";
 type LoginForm = { email: string; password: string };
 
 export default function LoginPageV1() {
+  // Update document metadata for SEO
+  useEffect(() => {
+    document.title = "Đăng nhập | LuxeWear AI";
+
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Đăng nhập vào tài khoản LuxeWear AI của bạn để quản lý AI Agent và bắt đầu xây dựng các giải pháp AI cho doanh nghiệp.');
+  }, []);
   const router = useRouter();
   const dispatch = useAppDispatch();
 
