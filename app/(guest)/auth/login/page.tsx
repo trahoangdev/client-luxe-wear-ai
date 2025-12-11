@@ -4,18 +4,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GithubIcon, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { login as apiLogin, saveTokens } from "@/services/authUserService";
 import { useAppDispatch } from "@/store";
 import { setCredentials } from "@/store/authSlice";
 import { useForm } from "react-hook-form";
 
-  type LoginForm = { email: string; password: string };
+type LoginForm = { email: string; password: string };
 
 export default function LoginPageV1() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    // Prefetch dashboard for instant navigation after login
+    router.prefetch("/dashboard");
+  }, [router]);
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -74,7 +81,7 @@ export default function LoginPageV1() {
         <div className="absolute inset-0 bg-grid-pattern opacity-5" />
         <div className="relative z-10 max-w-md px-8 text-center space-y-6">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary/10 mb-4">
-            <img src="/logoGobal.png" alt="LuxeWear" className="h-12 w-auto" />
+            <Image src="/logo.png" alt="LuxeWear" width={48} height={48} className="h-12 w-auto" priority />
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight">Welcome to LuxeWear</h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
@@ -89,9 +96,10 @@ export default function LoginPageV1() {
         <div className="w-full max-w-md space-y-8 px-4 py-12">
           <div className="text-center space-y-2">
             <Link href="/" className="inline-block mb-4">
-              <img src="/logoGobal.png" alt="LuxeWear" className="h-10 w-auto mx-auto" />
+              <Image src="/logo.png" alt="LuxeWear" width={40} height={40} className="h-10 w-auto mx-auto" />
             </Link>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Welcome back</h2>
+
             <p className="text-sm md:text-base text-muted-foreground">Please sign in to your account</p>
           </div>
 
@@ -175,9 +183,9 @@ export default function LoginPageV1() {
             </div>
 
             <div className="space-y-4">
-              <Button 
-                type="submit" 
-                className="w-full h-11 text-base font-semibold rounded-xl" 
+              <Button
+                type="submit"
+                className="w-full h-11 text-base font-semibold rounded-xl"
                 disabled={isSubmitting}
                 style={{
                   background: "linear-gradient(90deg, #FF7A7A 0%, #FF8C5A 25%, #FFB056 50%, #A77BFF 75%, #6C7BFF 100%)",
