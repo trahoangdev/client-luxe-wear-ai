@@ -9,9 +9,11 @@ interface ChatMessageListProps {
   loading: boolean;
   streamingMessageId: number | null;
   streamingContent: string;
+  onPromptClick?: (text: string) => void;
+  agentName?: string;
 }
 
-export function ChatMessageList({ messages, loading, streamingMessageId, streamingContent }: ChatMessageListProps) {
+export function ChatMessageList({ messages, loading, streamingMessageId, streamingContent, onPromptClick, agentName }: ChatMessageListProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export function ChatMessageList({ messages, loading, streamingMessageId, streami
   return (
     <div ref={listRef} className="h-[520px] overflow-y-auto rounded-2xl border bg-gradient-to-b from-background to-muted/20 p-6 space-y-6">
       {messages.length === 0 ? (
-        <EmptyState />
+        <EmptyState onPromptClick={onPromptClick} agentName={agentName} />
       ) : (
         <div className="space-y-6">
           {messages.map((m, i) => (
@@ -36,7 +38,7 @@ export function ChatMessageList({ messages, loading, streamingMessageId, streami
               streamingContent={streamingContent}
             />
           ))}
-          
+
           {/* Typing Indicator */}
           {loading && streamingMessageId === null && <TypingIndicator />}
         </div>

@@ -35,8 +35,8 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
       {/* Avatar */}
       <Avatar className={cn(
         "h-9 w-9 shrink-0 border-2",
-        isUser 
-          ? "bg-primary text-primary-foreground border-primary/20" 
+        isUser
+          ? "bg-primary text-primary-foreground border-primary/20"
           : "bg-muted border-muted-foreground/20"
       )}>
         <AvatarFallback className={cn(
@@ -60,65 +60,64 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
             : "bg-background border rounded-bl-sm"
         )}>
           {message.role === "assistant" ? (
-            <div className="space-y-3">
-              {isStreaming ? (
-                // Đang streaming: hiển thị plain text để tránh parse Markdown liên tục
-                <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                  {streamingContent}
-                </div>
-              ) : (
-                <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1">
-                  <Markdown>{message.content}</Markdown>
-                </div>
-              )}
-              {!isStreaming && 
-               message.citations && 
-               Array.isArray(message.citations) &&
-               message.citations.length > 0 && 
-               message.citations.some(c => c && (c.score > 0 || c.title || c.fileName)) && (
-                <div className="mt-3 pt-3 border-t border-border/60">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">Nguồn tham khảo:</span>
+            <div className="space-y-4">
+              {
+                isStreaming ? (
+                  // Đang streaming: hiển thị plain text để tránh parse Markdown liên tục
+                  <div className="whitespace-pre-wrap break-words text-base leading-7 text-foreground/90" >
+                    {streamingContent}
                   </div>
-                  <div className="space-y-1.5">
-                    {message.citations.map((citation, idx) => (
-                      <div
-                        key={citation.id || idx}
-                        className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2.5 py-1.5 border border-border/40"
-                      >
-                        <div className="flex items-start gap-2">
-                          <FileText className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground/70" />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-foreground/90 mb-0.5">
-                              {citation.title || citation.fileName || `Nguồn ${idx + 1}`}
-                            </div>
-                            <div className="space-y-0.5">
-                              {citation.fileName && citation.fileName !== citation.title && (
-                                <div className="text-[10px]">📄 File: {citation.fileName}</div>
-                              )}
-                              {citation.page !== undefined && (
-                                <div className="text-[10px]">📑 Trang: {citation.page + 1}</div>
-                              )}
-                              {citation.line !== undefined && (
-                                <div className="text-[10px]">📍 Dòng: {citation.line + 1}</div>
-                              )}
-                              {citation.content && (
-                                <div className="text-[10px] mt-1 italic line-clamp-2 text-muted-foreground/80">
-                                  &quot;{citation.content}&quot;
+                ) : (
+                  <div className="prose max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:text-base prose-p:leading-7 prose-p:my-3 prose-li:text-base prose-li:my-1 prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border/50">
+                    <Markdown>{message.content}</Markdown>
+                  </div>
+                )}
+              {!isStreaming &&
+                message.citations &&
+                Array.isArray(message.citations) &&
+                message.citations.length > 0 &&
+                message.citations.some(c => c && (c.score > 0 || c.title || c.fileName)) && (
+                  <div className="mt-4 pt-4 border-t border-border/60">
+                    <div className="flex items-center gap-2 mb-3">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold text-foreground/80">Nguồn tham khảo</span>
+                    </div>
+                    <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+                      {message.citations.map((citation, idx) => (
+                        <div
+                          key={citation.id || idx}
+                          className="group/citation text-sm bg-muted/30 hover:bg-muted/60 transition-colors rounded-lg p-3 border border-border/40 hover:border-primary/20"
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <FileText className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground group-hover/citation:text-primary transition-colors" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-foreground/90 mb-1 leading-snug line-clamp-1">
+                                {citation.title || citation.fileName || `Nguồn ${idx + 1}`}
+                              </div>
+                              <div className="space-y-1">
+                                {citation.fileName && citation.fileName !== citation.title && (
+                                  <div className="text-xs text-muted-foreground break-all">📄 {citation.fileName}</div>
+                                )}
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground/80">
+                                  {citation.page !== undefined && <span>📑 Trang {citation.page + 1}</span>}
+                                  {citation.line !== undefined && <span>📍 Dòng {citation.line + 1}</span>}
                                 </div>
-                              )}
+                                {citation.content && (
+                                  <div className="text-xs mt-2 pt-2 border-t border-border/30 italic line-clamp-2 text-muted-foreground/70">
+                                    &quot;{citation.content}&quot;
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           ) : (
-            <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.content}</div>
+            <div className="whitespace-pre-wrap break-words text-base leading-7">{message.content}</div>
           )}
         </div>
 
@@ -141,8 +140,8 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
             )}
           </Button>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 

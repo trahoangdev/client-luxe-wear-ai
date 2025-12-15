@@ -92,8 +92,37 @@ export async function chatWithAgent(agentId: string, payload: { message: string;
   return res.data;
 }
 
+export interface AdminAgent {
+  id: string;
+  name: string;
+  description?: string;
+  owner_id: string;
+  owner?: {
+    id: string;
+    email: string;
+    name?: string;
+  };
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any;
+}
+
+export interface AdminAgentListResponse {
+  data: {
+    agents: AdminAgent[];
+    pagination: {
+      page: number;
+      perPage: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+  message?: string;
+}
+
 // Admin APIs
-export async function adminListAllAgents(query: { page?: number; perPage?: number; isPublic?: 'all' | 'public' | 'private'; sort?: 'created_desc' | 'created_asc' | 'name_asc' | 'name_desc' } = {}) {
+export async function adminListAllAgents(query: { page?: number; perPage?: number; isPublic?: 'all' | 'public' | 'private'; sort?: 'created_desc' | 'created_asc' | 'name_asc' | 'name_desc' } = {}): Promise<AdminAgentListResponse> {
   const params: any = {};
   if (query.page) params.page = query.page;
   if (query.perPage) params.perPage = query.perPage;

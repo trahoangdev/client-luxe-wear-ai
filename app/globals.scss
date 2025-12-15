@@ -67,6 +67,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply overflow-x-hidden bg-background text-foreground;
   }
@@ -74,40 +75,40 @@
 
 /* Dashboard content zoom (instead of inline zoom style) */
 .dashboard-main-zoom {
-  transform: scale(1.1);
-  transform-origin: top left;
+  /* No zoom */
 }
 
-.container{
+.container {
   padding-left: 100px !important;
   padding-right: 100px !important;
 }
 
 /* Ant Design Dark Mode Overrides */
 .dark {
+
   /* Table styles */
   .ant-table {
     background: hsl(var(--card)) !important;
     color: hsl(var(--foreground)) !important;
   }
 
-  .ant-table-thead > tr > th {
+  .ant-table-thead>tr>th {
     background: hsl(var(--muted)) !important;
     color: hsl(var(--foreground)) !important;
     border-bottom: 1px solid hsl(var(--border)) !important;
   }
 
-  .ant-table-tbody > tr > td {
+  .ant-table-tbody>tr>td {
     background: hsl(var(--card)) !important;
     color: hsl(var(--foreground)) !important;
     border-bottom: 1px solid hsl(var(--border)) !important;
   }
 
-  .ant-table-tbody > tr:hover > td {
+  .ant-table-tbody>tr:hover>td {
     background: hsl(var(--muted)) !important;
   }
 
-  .ant-table-tbody > tr.ant-table-row-selected > td {
+  .ant-table-tbody>tr.ant-table-row-selected>td {
     background: hsl(var(--muted)) !important;
   }
 

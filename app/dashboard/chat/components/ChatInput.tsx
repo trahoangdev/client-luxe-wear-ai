@@ -2,7 +2,7 @@ import { type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send } from "lucide-react";
+import { Send, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MAX_INPUT } from "../constants";
 
@@ -12,9 +12,10 @@ interface ChatInputProps {
   loading: boolean;
   agentId: string | null;
   onSend: () => void;
+  onStop?: () => void;
 }
 
-export function ChatInput({ input, setInput, loading, agentId, onSend }: ChatInputProps) {
+export function ChatInput({ input, setInput, loading, agentId, onSend, onStop }: ChatInputProps) {
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       // Ctrl+Enter: chủ động chèn xuống dòng
@@ -54,14 +55,25 @@ export function ChatInput({ input, setInput, loading, agentId, onSend }: ChatInp
           className="pr-12 resize-none border-2 focus:border-primary/50 transition-colors"
           onKeyDown={handleKeyDown}
         />
-        <Button
-          onClick={onSend}
-          disabled={loading || !agentId || !input.trim()}
-          size="sm"
-          className="absolute bottom-2 right-2 h-8 w-8 p-0 rounded-full"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+        {loading && onStop ? (
+          <Button
+            onClick={onStop}
+            size="sm"
+            className="absolute bottom-2 right-2 h-8 w-8 p-0 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-in fade-in"
+            title="Stop generation"
+          >
+            <Square className="h-3 w-3 fill-current" />
+          </Button>
+        ) : (
+          <Button
+            onClick={onSend}
+            disabled={loading || !agentId || !input.trim()}
+            size="sm"
+            className="absolute bottom-2 right-2 h-8 w-8 p-0 rounded-full"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
         <span className={cn(
@@ -83,4 +95,3 @@ export function ChatInput({ input, setInput, loading, agentId, onSend }: ChatInp
     </div>
   );
 }
-

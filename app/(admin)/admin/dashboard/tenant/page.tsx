@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tag, Table } from "antd";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -31,26 +31,33 @@ import {
 } from "@/services/tenantService";
 import { toast } from "sonner";
 import {
-  Eye,
-  Trash2,
   RefreshCw,
   Building2,
-  Users,
-  Ban,
   CheckCircle,
   Search,
+  Ban
 } from "lucide-react";
 import {
   AdminActionState,
   AdminConfirmActionDialog,
 } from "@/components/admin/AdminConfirmActionDialog";
+import { DataTable } from "@/components/admin/users/data-table";
+import { columns } from "@/components/admin/tenants/columns";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { PaginationState, SortingState, ColumnFiltersState } from "@tanstack/react-table";
 
 export default function AdminTenantsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+
+  // Table State
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const [total, setTotal] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+
   const [query, setQuery] = useState("");
   const [planFilter, setPlanFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -65,9 +72,12 @@ export default function AdminTenantsPage() {
   const load = async () => {
     setLoading(true);
     try {
+      const page = pagination.pageIndex + 1;
+      const perPage = pagination.pageSize;
+
       const [tenantsRes, statsRes] = await Promise.all([
-        adminListAllTenants({ 
-          page, 
+        adminListAllTenants({
+          page,
           perPage,
           plan: planFilter !== 'all' ? planFilter : undefined,
           status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -81,7 +91,6 @@ export default function AdminTenantsPage() {
       let tenants: any[] = [];
       let paginationTotal = 0;
 
-      // Try different response structures
       if (Array.isArray(body)) {
         tenants = body;
         paginationTotal = body.length;
@@ -106,17 +115,15 @@ export default function AdminTenantsPage() {
 
       setData(tenants);
       setTotal(paginationTotal);
-      
-      // Parse stats response
+      setPageCount(Math.ceil(paginationTotal / perPage));
+
       const statsBody = (statsRes as any)?.data || statsRes;
       setStats(statsBody);
     } catch (e: any) {
       console.error("Failed to load tenants:", e);
-      // If API fails, try to show empty state gracefully
       if (e?.response?.status === 404 || e?.response?.status === 500) {
         setData([]);
         setTotal(0);
-        // Don't show error toast for 404/500, just show empty state
       } else {
         toast.error(e?.response?.data?.message || "Failed to load tenants");
       }
@@ -125,19 +132,12 @@ export default function AdminTenantsPage() {
     }
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     const timer = setTimeout(() => {
-      if (query) {
-        setPage(1);
-        load();
-      } else {
-        load();
-      }
+      load();
     }, 400);
     return () => clearTimeout(timer);
-  }, [query]);
-
-  useEffect(() => { load(); }, [page, perPage, planFilter, statusFilter]);
+  }, [query, pagination, planFilter, statusFilter]);
 
   const handleViewTenant = async (tenant: any) => {
     setSelectedTenant(tenant);
@@ -159,132 +159,24 @@ export default function AdminTenantsPage() {
     }
   };
 
-  const handleSuspend = async (tenantId: string) => {
+  const handleSuspend = async (tenant: any) => {
     setConfirmAction({
       type: "suspend",
-      target: { id: tenantId },
+      target: tenant,
       title: "Suspend tenant này?",
       description:
         "Tenant sẽ bị tạm dừng truy cập cho tới khi được kích hoạt lại.",
     });
   };
 
-  const handleActivate = async (tenantId: string) => {
+  const handleActivate = async (tenant: any) => {
     setConfirmAction({
       type: "activate",
-      target: { id: tenantId },
+      target: tenant,
       title: "Activate tenant này?",
       description: "Tenant sẽ được mở lại quyền truy cập vào hệ thống.",
     });
   };
-
-  const columns = [
-    { 
-      title: 'Name', 
-      dataIndex: 'name', 
-      key: 'name',
-      render: (_: any, r: any) => (
-        <div>
-          <div className="font-medium">{r.name}</div>
-          {r.id && (
-            <div className="text-xs text-muted-foreground truncate max-w-[200px]">{r.id}</div>
-          )}
-        </div>
-      ),
-    },
-    { 
-      title: 'Plan', 
-      dataIndex: 'plan', 
-      key: 'plan', 
-      render: (v: string) => {
-        const colors: Record<string, string> = {
-          free: 'default',
-          pro: 'blue',
-          enterprise: 'purple',
-        };
-        return <Tag color={colors[v] || 'default'}>{v || 'free'}</Tag>;
-      }
-    },
-    { 
-      title: 'Status', 
-      dataIndex: 'status', 
-      key: 'status', 
-      render: (v: string) => {
-        const colors: Record<string, string> = {
-          active: "green",
-          inactive: "default",
-          suspended: "red",
-        };
-        return <Tag color={colors[v] || "default"}>{v || "active"}</Tag>;
-      }
-    },
-    { 
-      title: 'Created', 
-      dataIndex: 'createdAt', 
-      key: 'createdAt', 
-      render: (_: any, r: any) => {
-        const d = r.createdAt || r.created_at;
-        return d ? (
-          <div>
-            <div className="text-sm">{new Date(d).toLocaleDateString()}</div>
-            <div className="text-xs text-muted-foreground">{new Date(d).toLocaleTimeString()}</div>
-          </div>
-        ) : '-';
-      } 
-    },
-    { 
-      title: 'Actions', 
-      key: 'actions', 
-      fixed: 'right' as const, 
-      render: (_: any, r: any) => (
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleViewTenant(r)}
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            View
-          </Button>
-          {r.status === 'suspended' ? (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleActivate(r.id)}
-            >
-              <CheckCircle className="h-4 w-4 mr-1" />
-              Activate
-            </Button>
-          ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleSuspend(r.id)}
-            >
-              <Ban className="h-4 w-4 mr-1" />
-              Suspend
-            </Button>
-          )}
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={async () => {
-              setConfirmAction({
-                type: "delete",
-                target: r,
-                title: `Xoá tenant "${r.name}"?`,
-                description:
-                  "Thao tác này không thể hoàn tác. Dữ liệu và quyền truy cập liên quan có thể bị xoá vĩnh viễn.",
-              });
-            }}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
-        </div>
-      ) 
-    },
-  ];
 
   // Statistics summary
   const statsSummary = useMemo(() => {
@@ -365,14 +257,14 @@ export default function AdminTenantsPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by name" 
-              value={query} 
-              onChange={(e) => setQuery(e.target.value)} 
-              className="pl-10" 
+            <Input
+              placeholder="Search by name"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-10"
             />
           </div>
-          <Select value={planFilter} onValueChange={(v) => { setPlanFilter(v); setPage(1); }}>
+          <Select value={planFilter} onValueChange={(v) => { setPlanFilter(v); setPagination(p => ({ ...p, pageIndex: 0 })); }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Plan" />
             </SelectTrigger>
@@ -383,7 +275,7 @@ export default function AdminTenantsPage() {
               <SelectItem value="enterprise">Enterprise</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPagination(p => ({ ...p, pageIndex: 0 })); }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -394,37 +286,38 @@ export default function AdminTenantsPage() {
               <SelectItem value="suspended">Suspended</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={String(perPage)} onValueChange={(v) => { setPerPage(parseInt(v)); setPage(1); }}>
-            <SelectTrigger className="w-[110px]">
-              <SelectValue placeholder="Per page" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 30, 50].map((n) => (
-                <SelectItem key={n} value={String(n)}>{n}/page</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </Card>
 
       {/* Tenants Table */}
-      <Card className="rounded-2xl border overflow-x-auto p-2">
-        <Table
-          rowKey="id"
-          size="middle"
-          columns={columns as any}
-          dataSource={data}
-          loading={loading}
-          pagination={{
-            current: page,
-            pageSize: perPage,
-                total,
-                showSizeChanger: false,
-                onChange: (p: number) => setPage(p),
-              }}
-              scroll={{ x: 1200 }}
-            />
-      </Card>
+      <div className="hidden h-full flex-1 flex-col space-y-8 md:flex">
+        {loading ? (
+          <TableSkeleton rowCount={pagination.pageSize} columnCount={5} />
+        ) : (
+          <DataTable
+            data={data}
+            columns={columns}
+            pageCount={pageCount}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            onView={handleViewTenant}
+            onDelete={(r) => {
+              setConfirmAction({
+                type: "delete",
+                target: r,
+                title: `Xoá tenant "${r.name}"?`,
+                description: "Thao tác này không thể hoàn tác.",
+              });
+            }}
+            meta={{
+              onActivate: handleActivate,
+              onSuspend: handleSuspend
+            }}
+          />
+        )}
+      </div>
 
       {/* View Tenant Dialog */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
@@ -445,17 +338,17 @@ export default function AdminTenantsPage() {
                   <div>
                     <span className="font-medium text-muted-foreground">Plan:</span>
                     <p className="mt-1">
-                      <Tag color={selectedTenant.plan === 'enterprise' ? 'purple' : selectedTenant.plan === 'pro' ? 'blue' : 'default'}>
+                      <Badge variant={selectedTenant.plan === 'enterprise' ? 'outline' : selectedTenant.plan === 'pro' ? 'default' : 'secondary'}>
                         {selectedTenant.plan || 'free'}
-                      </Tag>
+                      </Badge>
                     </p>
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">Status:</span>
                     <p className="mt-1">
-                      <Tag color={selectedTenant.status === 'active' ? 'green' : selectedTenant.status === 'suspended' ? 'red' : 'default'}>
+                      <Badge variant={selectedTenant.status === 'active' ? 'default' : selectedTenant.status === 'suspended' ? 'destructive' : 'secondary'} className={selectedTenant.status === 'active' ? 'bg-emerald-600' : ''}>
                         {selectedTenant.status || 'active'}
-                      </Tag>
+                      </Badge>
                     </p>
                   </div>
                   <div>
@@ -505,7 +398,7 @@ export default function AdminTenantsPage() {
                           <p className="text-sm font-medium">{member.user?.email || member.userId}</p>
                           <p className="text-xs text-muted-foreground">Joined: {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : '-'}</p>
                         </div>
-                        <Tag>{member.role || 'member'}</Tag>
+                        <Badge variant="outline">{member.role || 'member'}</Badge>
                       </div>
                     ))}
                   </div>
@@ -522,7 +415,7 @@ export default function AdminTenantsPage() {
                 {selectedTenant.status === 'suspended' ? (
                   <Button
                     variant="outline"
-                    onClick={() => handleActivate(selectedTenant.id)}
+                    onClick={() => handleActivate(selectedTenant)}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Activate
@@ -530,14 +423,14 @@ export default function AdminTenantsPage() {
                 ) : (
                   <Button
                     variant="outline"
-                    onClick={() => handleSuspend(selectedTenant.id)}
+                    onClick={() => handleSuspend(selectedTenant)}
                   >
                     <Ban className="h-4 w-4 mr-2" />
                     Suspend
                   </Button>
                 )}
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={async () => {
                     setConfirmAction({
                       type: "delete",
@@ -597,4 +490,3 @@ export default function AdminTenantsPage() {
     </div>
   );
 }
-

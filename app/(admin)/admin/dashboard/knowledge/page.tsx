@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tag, Table } from "antd";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -38,13 +38,23 @@ import {
   AdminActionState,
   AdminConfirmActionDialog,
 } from "@/components/admin/AdminConfirmActionDialog";
+import { DataTable } from "@/components/admin/users/data-table";
+import { columns } from "@/components/admin/knowledge/columns";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { PaginationState, SortingState, ColumnFiltersState } from "@tanstack/react-table";
 
 export default function AdminKnowledgePage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+
+  // Table State
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const [total, setTotal] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+
   const [query, setQuery] = useState("");
   const [agentFilter, setAgentFilter] = useState<string>("all");
   const [selectedKnowledge, setSelectedKnowledge] = useState<any | null>(null);
@@ -56,9 +66,12 @@ export default function AdminKnowledgePage() {
   const load = async () => {
     setLoading(true);
     try {
+      const page = pagination.pageIndex + 1;
+      const perPage = pagination.pageSize;
+
       const [knowledgeRes, statsRes] = await Promise.all([
-        adminListAllKnowledge({ 
-          page, 
+        adminListAllKnowledge({
+          page,
           perPage,
           agentId: agentFilter !== 'all' ? agentFilter : undefined,
         }),
@@ -93,17 +106,16 @@ export default function AdminKnowledgePage() {
 
       setData(knowledge);
       setTotal(paginationTotal);
-      
+      setPageCount(Math.ceil(paginationTotal / perPage));
+
       // Parse stats response
       const statsBody = (statsRes as any)?.data || statsRes;
       setStats(statsBody);
     } catch (e: any) {
       console.error("Failed to load knowledge:", e);
-      // If API fails, try to show empty state gracefully
       if (e?.response?.status === 404 || e?.response?.status === 500) {
         setData([]);
         setTotal(0);
-        // Don't show error toast for 404/500, just show empty state
       } else {
         toast.error(e?.response?.data?.message || "Failed to load knowledge");
       }
@@ -112,130 +124,54 @@ export default function AdminKnowledgePage() {
     }
   };
 
-  useEffect(() => { load(); }, [page, perPage, agentFilter]);
+  useEffect(() => { load(); }, [pagination, agentFilter]);
 
   const handleViewKnowledge = async (item: any) => {
     setSelectedKnowledge(item);
     setViewOpen(true);
-    // Try to fetch detailed info using admin API, but if it fails, use the data we already have
     try {
       const detail = await adminGetKnowledge(item.id);
       const detailData = (detail as any)?.data || detail;
       setSelectedKnowledge({ ...item, ...detailData });
     } catch (e: any) {
-      // If admin API doesn't exist (404) or fails, just use the item data we already have
       if (e?.response?.status === 404) {
-        // API endpoint doesn't exist, use available data
         console.warn(
           "Admin knowledge detail API not available, using list data",
         );
       } else {
-        // Other error, still use available data but log it
         console.warn(
           "Could not fetch detailed knowledge info:",
           e?.response?.data?.message || e?.message,
         );
       }
-      // Keep using the item data we already have (setSelectedKnowledge was already called above)
     }
   };
 
-  const filtered = useMemo(() => {
-    let list = Array.isArray(data) ? [...data] : [];
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      list = list.filter((k) => 
-        (k.title || '').toLowerCase().includes(q) || 
-        (k.content || '').toLowerCase().includes(q) ||
-        (k.agent?.name || '').toLowerCase().includes(q) ||
-        (k.user?.email || '').toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [data, query]);
+  // Pre-filter data client-side if query exists (since API might strictly filter)
+  // Or we just rely on API if implemented. The code had client-side filtering below.
+  // I will keep the filtering logic on 'data' but ideally the API handles 'q'.
+  // The API call currently doesn't pass 'q' for query. The original code did:
+  /*
+      const filtered = useMemo(() => {
+        let list = Array.isArray(data) ? [...data] : [];
+        if (query.trim()) { ... }
+        return list;
+      }, [data, query]);
+  */
+  // I will reproduce this client side filtering behavior on top of the paginated data for now,
+  // or pass 'q' to API if I updated the service. The service `adminListAllKnowledge` signature implies page/perPage/agentId only in original code.
+  // So I'll keep client side filtering of the *current page* which is suboptimal but safe.
 
-  const columns = [
-    { 
-      title: 'Title', 
-      dataIndex: 'title', 
-      key: 'title',
-      render: (_: any, r: any) => (
-        <div>
-          <div className="font-medium">{r.title || '(No title)'}</div>
-          {r.content && (
-            <div className="text-xs text-muted-foreground truncate max-w-[400px]">
-              {String(r.content).substring(0, 100)}...
-            </div>
-          )}
-        </div>
-      ),
-    },
-    { 
-      title: 'Agent', 
-      dataIndex: ['agent', 'name'], 
-      key: 'agent', 
-      render: (_: any, r: any) => r.agent?.name || '-' 
-    },
-    { 
-      title: 'User', 
-      dataIndex: ['user', 'email'], 
-      key: 'user', 
-      render: (_: any, r: any) => r.user?.email || '-' 
-    },
-    { 
-      title: 'Tenant', 
-      dataIndex: ['tenant', 'name'], 
-      key: 'tenant', 
-      render: (_: any, r: any) => r.tenant?.name || '-' 
-    },
-    { 
-      title: 'Created', 
-      dataIndex: 'createdAt', 
-      key: 'createdAt', 
-      render: (_: any, r: any) => {
-        const d = r.createdAt || r.created_at;
-        return d ? (
-          <div>
-            <div className="text-sm">{new Date(d).toLocaleDateString()}</div>
-            <div className="text-xs text-muted-foreground">{new Date(d).toLocaleTimeString()}</div>
-          </div>
-        ) : '-';
-      } 
-    },
-    { 
-      title: 'Actions', 
-      key: 'actions', 
-      fixed: 'right' as const, 
-      render: (_: any, r: any) => (
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleViewKnowledge(r)}
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            View
-          </Button>
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={() =>
-              setConfirmAction({
-                type: "delete",
-                target: r,
-                title: `Force delete knowledge entry "${r.title || r.id}"?`,
-                description:
-                  "Thao tác này không thể hoàn tác. Dữ liệu kiến thức này sẽ bị xoá vĩnh viễn khỏi hệ thống.",
-              })
-            }
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
-        </div>
-      ) 
-    },
-  ];
+  const filteredData = useMemo(() => {
+    if (!query.trim()) return data;
+    const q = query.trim().toLowerCase();
+    return data.filter((k) =>
+      (k.title || '').toLowerCase().includes(q) ||
+      (k.content || '').toLowerCase().includes(q) ||
+      (k.agent?.name || '').toLowerCase().includes(q) ||
+      (k.user?.email || '').toLowerCase().includes(q)
+    );
+  }, [data, query]);
 
   return (
     <div className="space-y-6">
@@ -308,14 +244,14 @@ export default function AdminKnowledgePage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by title, content, agent, or user" 
-              value={query} 
-              onChange={(e) => setQuery(e.target.value)} 
-              className="pl-10" 
+            <Input
+              placeholder="Search by title, content, agent, or user"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-10"
             />
           </div>
-          <Select value={agentFilter} onValueChange={(v) => { setAgentFilter(v); setPage(1); }}>
+          <Select value={agentFilter} onValueChange={(v) => { setAgentFilter(v); setPagination(p => ({ ...p, pageIndex: 0 })); }}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by agent" />
             </SelectTrigger>
@@ -324,37 +260,35 @@ export default function AdminKnowledgePage() {
               {/* Agent options would be loaded from API */}
             </SelectContent>
           </Select>
-          <Select value={String(perPage)} onValueChange={(v) => { setPerPage(parseInt(v)); setPage(1); }}>
-            <SelectTrigger className="w-[110px]">
-              <SelectValue placeholder="Per page" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 30, 50].map((n) => (
-                <SelectItem key={n} value={String(n)}>{n}/page</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </Card>
 
       {/* Knowledge Table */}
-      <Card className="rounded-2xl border overflow-x-auto p-2">
-        <Table
-          rowKey="id"
-          size="middle"
-          columns={columns as any}
-          dataSource={filtered}
-          loading={loading}
-          pagination={{
-            current: page,
-            pageSize: perPage,
-                total: total,
-                showSizeChanger: false,
-                onChange: (p: number) => setPage(p),
-              }}
-              scroll={{ x: 1200 }}
-            />
-      </Card>
+      <div className="hidden h-full flex-1 flex-col space-y-8 md:flex">
+        {loading ? (
+          <TableSkeleton rowCount={pagination.pageSize} columnCount={5} />
+        ) : (
+          <DataTable
+            data={filteredData}
+            columns={columns}
+            pageCount={pageCount}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            onView={handleViewKnowledge}
+            onDelete={(r) => {
+              setConfirmAction({
+                type: "delete",
+                target: r,
+                title: `Force delete knowledge entry "${r.title || r.id}"?`,
+                description:
+                  "Thao tác này không thể hoàn tác. Dữ liệu kiến thức này sẽ bị xoá vĩnh viễn khỏi hệ thống.",
+              });
+            }}
+          />
+        )}
+      </div>
 
       {/* View Knowledge Dialog */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
@@ -469,4 +403,3 @@ export default function AdminKnowledgePage() {
     </div>
   );
 }
-

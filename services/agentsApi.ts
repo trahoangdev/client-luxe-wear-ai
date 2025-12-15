@@ -26,8 +26,8 @@ export const agentsApi = createApi({
   baseQuery: axiosBaseQuery(),
   tagTypes: ["Agents"],
   endpoints: (builder) => ({
-    listAgents: builder.query<AgentsListResponse, { page?: number; pageSize?: number }>({
-      query: ({ page = 1, pageSize = 12 } = {}) => ({
+    listAgents: builder.query<AgentsListResponse, { page?: number; pageSize?: number; tenantId?: string }>({
+      query: ({ page = 1, pageSize = 12 }) => ({
         url: "/agents",
         method: "GET",
         params: { page, pageSize },
@@ -35,14 +35,14 @@ export const agentsApi = createApi({
       providesTags: (result) =>
         result?.agents
           ? [
-              ...result.agents.map((a) => ({ type: "Agents" as const, id: a.id })),
-              { type: "Agents" as const, id: "LIST" },
-            ]
+            ...result.agents.map((a) => ({ type: "Agents" as const, id: a.id })),
+            { type: "Agents" as const, id: "LIST" },
+          ]
           : [{ type: "Agents" as const, id: "LIST" }],
     }),
     searchAgents: builder.query<
       AgentsListResponse,
-      { q: string; page?: number; pageSize?: number }
+      { q: string; page?: number; pageSize?: number; tenantId?: string }
     >({
       query: ({ q, page = 1, pageSize = 12 }) => ({
         url: "/agents/search",
@@ -52,9 +52,9 @@ export const agentsApi = createApi({
       providesTags: (result) =>
         result?.agents
           ? [
-              ...result.agents.map((a) => ({ type: "Agents" as const, id: a.id })),
-              { type: "Agents" as const, id: "LIST" },
-            ]
+            ...result.agents.map((a) => ({ type: "Agents" as const, id: a.id })),
+            { type: "Agents" as const, id: "LIST" },
+          ]
           : [{ type: "Agents" as const, id: "LIST" }],
     }),
   }),
