@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { LoadingGrid } from "@/components/shared/LoadingGrid";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { deleteAgent, getAgent, createAgent } from "@/services/agentService";
-import { Plus } from "lucide-react";
+import { Plus, Bot, Building2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +23,7 @@ import { AgentCard } from "@/components/agent/AgentCard";
 export default function DashboardHomePage() {
   const router = useRouter();
   const { currentTenant } = useTenant();
-  
+
   // URL filters
   const urlFilters = useUrlFilters({
     q: "",
@@ -51,7 +51,7 @@ export default function DashboardHomePage() {
     isFetching: isFetchingList,
     refetch: refetchList,
   } = useListAgentsQuery(
-    { page, pageSize: perPage },
+    { page, pageSize: perPage, tenantId: currentTenant || undefined },
     { skip: !currentTenant || hasSearch }
   );
   const {
@@ -60,7 +60,7 @@ export default function DashboardHomePage() {
     isFetching: isFetchingSearch,
     refetch: refetchSearch,
   } = useSearchAgentsQuery(
-    { q: searchTerm.trim(), page, pageSize: perPage },
+    { q: searchTerm.trim(), page, pageSize: perPage, tenantId: currentTenant || undefined },
     { skip: !currentTenant || !hasSearch }
   );
 
@@ -140,6 +140,7 @@ export default function DashboardHomePage() {
           description="Chọn hoặc tạo workspace tenant để xem và quản lý AI agents của bạn."
           actionLabel="Đi đến Tenants"
           onAction={() => router.push("/dashboard/tenants")}
+          icon={<Building2 className="h-10 w-10 text-muted-foreground" />}
         />
       ) : (
         <>
@@ -152,7 +153,7 @@ export default function DashboardHomePage() {
               aria-label="Search agents"
             />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger 
+              <SelectTrigger
                 className="w-[140px]"
                 aria-label="Filter by status"
               >
@@ -165,7 +166,7 @@ export default function DashboardHomePage() {
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger 
+              <SelectTrigger
                 className="w-[180px]"
                 aria-label="Sort agents"
               >
@@ -178,18 +179,18 @@ export default function DashboardHomePage() {
                 <SelectItem value="name-DESC">Tên Z-A</SelectItem>
               </SelectContent>
             </Select>
-              <Select
-                value={String(perPage)}
-                onValueChange={(v) => {
-                  const next = parseInt(v);
-                  setPerPage(next);
-                  setPageSize(next);
-                  setPage(1);
-                }}
-              >
+            <Select
+              value={String(perPage)}
+              onValueChange={(v) => {
+                const next = parseInt(v);
+                setPerPage(next);
+                setPageSize(next);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-[110px]"><SelectValue placeholder="Mỗi trang" /></SelectTrigger>
               <SelectContent>
-                {[6,12,24,36].map((n) => (
+                {[6, 12, 24, 36].map((n) => (
                   <SelectItem key={n} value={String(n)}>{n}/trang</SelectItem>
                 ))}
               </SelectContent>
@@ -204,40 +205,46 @@ export default function DashboardHomePage() {
               description="Tạo AI Agent đầu tiên để bắt đầu phục vụ khách hàng với LuxeWear."
               actionLabel="Tạo agent đầu tiên của bạn"
               onAction={() => router.push("/dashboard/agents/new")}
+              icon={<Bot className="h-10 w-10 text-primary" />}
             />
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {agents.map((agent) => (
-                  <AgentCard
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                {agents.map((agent, index) => (
+                  <div
                     key={agent.id}
-                    agent={agent}
-                    onOpenDetail={() => router.push(`/dashboard/chat?agentId=${agent.id}`)}
-                    onChat={() => {
-                      setChatAgentId(agent.id);
-                      setChatMessages([]);
-                    }}
-                    onDuplicate={async () => {
-                      try {
-                        const res = await getAgent(agent.id);
-                        const data = res.data || res;
-                        const payload = {
-                          name: `${data.name || agent.name} Copy`,
-                          description: data.description || agent.description,
-                          config: data.config || agent.config,
-                        } as any;
-                        const created = await createAgent(payload);
-                        if (created.success) {
-                          toast.success("Đã sao chép agent");
-                        } else {
-                          toast.error(created.message || "Sao chép thất bại");
+                    className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <AgentCard
+                      agent={agent}
+                      onOpenDetail={() => router.push(`/dashboard/chat?agentId=${agent.id}`)}
+                      onChat={() => {
+                        setChatAgentId(agent.id);
+                        setChatMessages([]);
+                      }}
+                      onDuplicate={async () => {
+                        try {
+                          const res = await getAgent(agent.id);
+                          const data = res.data || res;
+                          const payload = {
+                            name: `${data.name || agent.name} Copy`,
+                            description: data.description || agent.description,
+                            config: data.config || agent.config,
+                          } as any;
+                          const created = await createAgent(payload);
+                          if (created.success) {
+                            toast.success("Đã sao chép agent");
+                          } else {
+                            toast.error(created.message || "Sao chép thất bại");
+                          }
+                        } catch (e: any) {
+                          toast.error(e?.response?.data?.message || e?.message || "Sao chép thất bại");
                         }
-                      } catch (e: any) {
-                        toast.error(e?.response?.data?.message || e?.message || "Sao chép thất bại");
-                      }
-                    }}
-                    onDelete={() => setConfirmOpen({ id: agent.id, name: agent.name })}
-                  />
+                      }}
+                      onDelete={() => setConfirmOpen({ id: agent.id, name: agent.name })}
+                    />
+                  </div>
                 ))}
               </div>
               {pageCount > 1 && (

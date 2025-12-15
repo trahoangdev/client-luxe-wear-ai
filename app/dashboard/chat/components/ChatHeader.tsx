@@ -66,15 +66,15 @@ export function ChatHeader({
           <Plus className="h-4 w-4 mr-2" />
           New chat
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={onClear}
           disabled={messagesCount === 0}
         >
           Clear
         </Button>
-        <Button 
+        {/* <Button 
           size="sm"
           onClick={onExport} 
           disabled={messagesCount === 0}
@@ -82,7 +82,7 @@ export function ChatHeader({
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           Export .md
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

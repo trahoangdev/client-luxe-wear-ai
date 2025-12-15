@@ -14,11 +14,11 @@ export function useChat(agentId: string, context: string) {
   const send = async (text: string) => {
     if (!agentId) return toast.error("Please select an agent");
     if (!text.trim()) return;
-    
+
     const userMsg: Msg = { role: "user", content: text, ts: Date.now() };
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
-    
+
     try {
       const res = await chatApi(agentId, { message: text, context: context || undefined });
       const reply =
@@ -27,11 +27,11 @@ export function useChat(agentId: string, context: string) {
         (res as { data?: { response?: string; message?: string }; message?: string }).message ||
         "(no response)";
       const citations = (res as { data?: { citations?: Citation[] } }).data?.citations || [];
-      
+
       // Create placeholder message for streaming
-      const assistantMsg: Msg = { 
-        role: "assistant", 
-        content: "", 
+      const assistantMsg: Msg = {
+        role: "assistant",
+        content: "",
         ts: Date.now(),
         citations: citations.length > 0 ? citations : undefined
       };
@@ -42,8 +42,8 @@ export function useChat(agentId: string, context: string) {
         setStreamingMessageId(messageIndex);
         return newMessages;
       });
-      setLoading(false);
-      
+      // Do NOT set loading false here, wait for streaming to finish
+
       // Start typing animation
       let currentIndex = 0;
       const typeNextChar = () => {
@@ -66,10 +66,11 @@ export function useChat(agentId: string, context: string) {
           });
           setStreamingMessageId(null);
           setStreamingContent("");
+          setLoading(false); // Set loading false ONLY when streaming is done
         }
       };
       typeNextChar();
-      
+
       void trackEvent("chat_message_sent", {
         agentId,
         hasContext: Boolean(context),
@@ -84,6 +85,8 @@ export function useChat(agentId: string, context: string) {
       }
       setStreamingMessageId(null);
       setStreamingContent("");
+      setLoading(false); // Ensure loading is reset on error
+
       if (err?.message === "CHAT_TIMEOUT") {
         toast.error("Phản hồi mất hơn 20 giây, vui lòng thử lại.");
       } else {
@@ -93,11 +96,6 @@ export function useChat(agentId: string, context: string) {
         component: "DashboardChatPage",
         extra: { agentId },
       });
-    } finally {
-      // Don't set loading to false here if streaming is active
-      if (!streamingMessageId) {
-        setLoading(false);
-      }
     }
   };
 
@@ -110,6 +108,108 @@ export function useChat(agentId: string, context: string) {
     };
   }, []);
 
+  const stop = () => {
+    if (streamingTimeoutRef.current) {
+      clearTimeout(streamingTimeoutRef.current);
+      streamingTimeoutRef.current = null;
+    }
+    // Update message with current streaming content
+    if (streamingMessageId !== null) {
+      setMessages((prev) => {
+        const updated = [...prev];
+        if (updated[streamingMessageId]) {
+          updated[streamingMessageId] = {
+            ...updated[streamingMessageId],
+            content: streamingContent, // Save partial content
+          };
+        }
+        return updated;
+      });
+      setStreamingMessageId(null);
+      setStreamingContent("");
+      setLoading(false);
+    }
+  };
+
+  const reload = async () => {
+    const lastUserMsgIndex = messages.findLastIndex(m => m.role === "user");
+    if (lastUserMsgIndex === -1) return;
+
+    const lastUserMsg = messages[lastUserMsgIndex];
+
+    // Remove all messages after the last user message
+    setMessages(prev => prev.slice(0, lastUserMsgIndex + 1));
+
+    // Re-send logic (copied from send but without adding user message)
+    if (!agentId) return toast.error("Please select an agent");
+    const text = lastUserMsg.content;
+    setLoading(true);
+
+    try {
+      const res = await chatApi(agentId, { message: text, context: context || undefined });
+      const reply =
+        (res as { data?: { response?: string; message?: string }; message?: string }).data?.response ||
+        (res as { data?: { response?: string; message?: string }; message?: string }).data?.message ||
+        (res as { data?: { response?: string; message?: string }; message?: string }).message ||
+        "(no response)";
+      const citations = (res as { data?: { citations?: Citation[] } }).data?.citations || [];
+
+      const assistantMsg: Msg = {
+        role: "assistant",
+        content: "",
+        ts: Date.now(),
+        citations: citations.length > 0 ? citations : undefined
+      };
+
+      let messageIndex: number;
+      setMessages((prev) => {
+        const newMessages = [...prev, assistantMsg];
+        messageIndex = newMessages.length - 1;
+        setStreamingMessageId(messageIndex);
+        return newMessages;
+      });
+      // Do NOT set loading false here
+
+      let currentIndex = 0;
+      const typeNextChar = () => {
+        if (currentIndex < reply.length) {
+          setStreamingContent(reply.slice(0, currentIndex + 1));
+          currentIndex++;
+          streamingTimeoutRef.current = setTimeout(typeNextChar, 30);
+        } else {
+          setMessages((prev) => {
+            const updated = [...prev];
+            if (messageIndex !== undefined && updated[messageIndex]) {
+              updated[messageIndex] = {
+                ...updated[messageIndex],
+                content: reply,
+                citations: citations.length > 0 ? citations : undefined,
+              };
+            }
+            return updated;
+          });
+          setStreamingMessageId(null);
+          setStreamingContent("");
+          setLoading(false); // Set loading false ONLY when streaming is done
+        }
+      };
+      typeNextChar();
+
+      void trackEvent("chat_message_regenerated", {
+        agentId,
+        hasContext: Boolean(context),
+        page: "dashboard_chat",
+      });
+    } catch (e) {
+      const err = e as { message?: string; response?: { data?: { message?: string } } };
+      if (streamingTimeoutRef.current) clearTimeout(streamingTimeoutRef.current);
+      setStreamingMessageId(null);
+      setStreamingContent("");
+      setLoading(false); // Ensure loading is reset on error
+      toast.error(err.response?.data?.message || err.message || "Regenerate failed");
+    }
+  };
+
   return {
     messages,
     setMessages,
@@ -117,6 +217,8 @@ export function useChat(agentId: string, context: string) {
     streamingMessageId,
     streamingContent,
     send,
+    stop,
+    reload,
   };
 }
 

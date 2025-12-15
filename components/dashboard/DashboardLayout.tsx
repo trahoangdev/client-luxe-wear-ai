@@ -8,7 +8,7 @@ import { logout as logoutAction } from "@/store/authSlice";
 import { logout as apiLogout, clearTokens } from "@/services/authUserService";
 import { resetTenantState } from "@/store/tenantSlice";
 import UserAvatar from "@/components/user-avatar";
-import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import {
   Bot,
   BarChart2,
@@ -40,6 +40,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type NavItem = { href: string; label: string; icon?: React.ElementType };
 
@@ -140,6 +148,21 @@ export default function DashboardLayout({
     setSidebarOpen(false);
   }, [pathname]);
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("sidebar-collapsed");
+    if (stored) {
+      setIsCollapsed(stored === "true");
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem("sidebar-collapsed", String(newState));
+  };
+
   // Helper function to check if nav item is active
   const isNavItemActive = (item: NavItem): boolean => {
     const basePath = item.href.split("?")[0];
@@ -162,19 +185,48 @@ export default function DashboardLayout({
   };
 
   // Render navigation item
-  const renderNavItem = (item: NavItem, onClick?: () => void) => {
+  const renderNavItem = (item: NavItem, collapsed: boolean, onClick?: () => void) => {
     const isActive = isNavItemActive(item);
     const Icon = item.icon;
+
+    if (collapsed) {
+      return (
+        <Tooltip key={item.href} delayDuration={0}>
+          <TooltipTrigger asChild>
+            <Link
+              href={item.href}
+              onClick={onClick}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex items-center justify-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {Icon ? <Icon className="h-5 w-5 shrink-0" /> : null}
+              <span className="sr-only">{item.label}</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="flex items-center gap-4">
+            {item.label}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
     return (
       <Link
         key={item.href}
         href={item.href}
         onClick={onClick}
         aria-current={isActive ? "page" : undefined}
-        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+          isActive
             ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          }`}
+        )}
       >
         {Icon ? <Icon className="h-4 w-4 shrink-0" /> : null}
         <span>{item.label}</span>
@@ -183,49 +235,43 @@ export default function DashboardLayout({
   };
 
   // Render navigation section
-  const renderNavSection = () => (
+  const renderNavSection = (collapsed: boolean = false) => (
     <>
       {/* Main Navigation */}
       <div className="space-y-4">
         {currentAgentId ? (
           <>
             <div>
-              <div className="px-3 mb-2">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Agent</h3>
-              </div>
+              {!collapsed && (
+                <div className="px-3 mb-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider animate-in fade-in duration-300">Agent</h3>
+                </div>
+              )}
               <div className="space-y-1">
-                {agentMainNav.map((item) => renderNavItem(item, () => setSidebarOpen(false)))}
+                {agentMainNav.map((item) => renderNavItem(item, collapsed, () => setSidebarOpen(false)))}
               </div>
             </div>
 
             {agentAdvancedNav.length > 0 && (
               <div>
-                <div className="px-3 mb-2">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Integration</h3>
-                </div>
+                {!collapsed && (
+                  <div className="px-3 mb-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider animate-in fade-in duration-300">Integration</h3>
+                  </div>
+                )}
                 <div className="space-y-1">
-                  {agentAdvancedNav.map((item) => renderNavItem(item, () => setSidebarOpen(false)))}
+                  {agentAdvancedNav.map((item) => renderNavItem(item, collapsed, () => setSidebarOpen(false)))}
                 </div>
               </div>
             )}
 
             {/* Back to Agents - Moved to bottom */}
             {agentBackNav.length > 0 && (
-              <div className="pt-2 border-t">
+              <div className={cn("pt-2", !collapsed && "border-t")}>
                 <div className="space-y-1">
                   {agentBackNav.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setSidebarOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
-                      >
-                        {Icon ? <Icon className="h-4 w-4" /> : null}
-                        <span>{item.label}</span>
-                      </Link>
-                    );
+                    // Reuse renderNavItem logic for consistency
+                    return renderNavItem(item, collapsed, () => setSidebarOpen(false));
                   })}
                 </div>
               </div>
@@ -234,26 +280,28 @@ export default function DashboardLayout({
         ) : (
           <>
             <div className="space-y-1">
-              {mainNav.map((item) => renderNavItem(item, () => setSidebarOpen(false)))}
+              {mainNav.map((item) => renderNavItem(item, collapsed, () => setSidebarOpen(false)))}
             </div>
 
             {/* Settings Section */}
             {settingsNav.length > 0 && (
-              <div className="pt-2 border-t">
-                <div className="px-3 mb-2">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Settings</h3>
-                </div>
+              <div className={cn("pt-2", !collapsed && "border-t")}>
+                {!collapsed && (
+                  <div className="px-3 mb-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider animate-in fade-in duration-300">Settings</h3>
+                  </div>
+                )}
                 <div className="space-y-1">
-                  {settingsNav.map((item) => renderNavItem(item, () => setSidebarOpen(false)))}
+                  {settingsNav.map((item) => renderNavItem(item, collapsed, () => setSidebarOpen(false)))}
                 </div>
               </div>
             )}
 
             {/* Quick Links */}
             {quickLinks.length > 0 && (
-              <div className="pt-2 border-t">
+              <div className={cn("pt-2", !collapsed && "border-t")}>
                 <div className="space-y-1">
-                  {quickLinks.map((item) => renderNavItem(item, () => setSidebarOpen(false)))}
+                  {quickLinks.map((item) => renderNavItem(item, collapsed, () => setSidebarOpen(false)))}
                 </div>
               </div>
             )}
@@ -290,213 +338,236 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top Bar */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background">
-        <div className="mx-auto flex h-14 items-center justify-between px-4 md:px-6">
-          {/* Left: Logo + workspace name placeholder */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label="Toggle sidebar"
-            >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-            <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <img src="/logoGobal.png" alt="LuxeWear" className="h-7 w-auto" />
-              <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">LuxeWear</span>
-                <span className="text-muted-foreground/60">/</span>
-                <span className="text-muted-foreground">Dashboard</span>
-              </div>
-            </Link>
-          </div>
-
-          {/* Right: quick links */}
-          <nav className="flex items-center gap-3 md:gap-4 text-sm font-medium">
-            <div className="hidden sm:block">
-              <TenantSwitcher />
-            </div>
-            <Link
-              href="/docs/user-guides"
-              className="hidden md:inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Docs</span>
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="hidden md:inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/user" className="flex items-center gap-2 cursor-pointer">
-                    <UserRoundCog className="h-4 w-4" />
-                    <span>Account</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/workspaceSetting/general" className="flex items-center gap-2 cursor-pointer">
-                    <Settings className="h-4 w-4" />
-                    <span>Workspace</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/pages/settings" className="flex items-center gap-2 cursor-pointer">
-                    <Settings className="h-4 w-4" />
-                    <span>General Settings</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <div className="relative" ref={menuRef}>
-              <button
-                className="overflow-hidden rounded-full"
-                onClick={() => setMenuOpen((v) => !v)}
-                aria-label="Open profile menu"
-              >
-                <UserAvatar image={user?.avatar_url || undefined} fallback={(user?.name || user?.email || "U").slice(0, 2).toUpperCase()} className="h-7 w-7" />
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-72 rounded-2xl border bg-background shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="p-4">
-                    <div className="text-base font-semibold">{user?.name || "User"}</div>
-                    <div className="text-sm text-muted-foreground">{user?.email || ""}</div>
-                  </div>
-                  <div className="h-px bg-border" />
-                  <div className="p-2">
-                    <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors">Dashboard</Link>
-                    {isAdmin && (
-                      <Link
-                        href="/admin/dashboard"
-                        onClick={() => setMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        Admin Dashboard
-                      </Link>
-                    )}
-                    <div className="h-px bg-border my-1" />
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setLogoutDialogOpen(true);
-                      }}
-                      className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </nav>
-        </div>
-      </header>
-
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <aside
-            ref={sidebarRef}
-            className="fixed left-0 top-0 h-full w-64 bg-background border-r shadow-xl animate-in slide-in-from-left duration-300"
-          >
-            <div className="flex items-center justify-between p-4 border-b">
-              <Link href="/dashboard" onClick={() => setSidebarOpen(false)}>
-                <img src="/logoGobal.png" alt="LuxeWear" className="h-6 w-auto" />
-              </Link>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        {/* Top Bar */}
+        <header className="sticky top-0 z-40 w-full border-b bg-background">
+          <div className="mx-auto flex h-14 items-center justify-between px-4 md:px-6">
+            {/* Left: Logo + workspace name placeholder */}
+            <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setSidebarOpen(false)}
-                aria-label="Close sidebar"
+                className="md:hidden"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label="Toggle sidebar"
               >
-                <X className="h-5 w-5" />
+                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+              <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <img src="/logoGobal.png" alt="LuxeWear" className="h-7 w-auto" />
+                <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">LuxeWear</span>
+                  <span className="text-muted-foreground/60">/</span>
+                  <span className="text-muted-foreground">Dashboard</span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Right: quick links */}
+            <nav className="flex items-center gap-3 md:gap-4 text-sm font-medium">
+              <div className="hidden sm:block">
+                <TenantSwitcher />
+              </div>
+              <Link
+                href="/docs/user-guides"
+                className="hidden md:inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Docs</span>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hidden md:inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/user" className="flex items-center gap-2 cursor-pointer">
+                      <UserRoundCog className="h-4 w-4" />
+                      <span>Account</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/workspaceSetting/general" className="flex items-center gap-2 cursor-pointer">
+                      <Settings className="h-4 w-4" />
+                      <span>Workspace</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/pages/settings" className="flex items-center gap-2 cursor-pointer">
+                      <Settings className="h-4 w-4" />
+                      <span>General Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="relative" ref={menuRef}>
+                <button
+                  className="overflow-hidden rounded-full"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-label="Open profile menu"
+                >
+                  <UserAvatar image={user?.avatar_url || undefined} fallback={(user?.name || user?.email || "U").slice(0, 2).toUpperCase()} className="h-7 w-7" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 mt-2 w-72 rounded-2xl border bg-background shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="p-4">
+                      <div className="text-base font-semibold">{user?.name || "User"}</div>
+                      <div className="text-sm text-muted-foreground">{user?.email || ""}</div>
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="p-2">
+                      <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors">Dashboard</Link>
+                      {isAdmin && (
+                        <Link
+                          href="/admin/dashboard"
+                          onClick={() => setMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
+                        >
+                          <LayoutDashboard className="h-4 w-4" />
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <div className="h-px bg-border my-1" />
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setLogoutDialogOpen(true);
+                        }}
+                        className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </nav>
+          </div>
+        </header>
+
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <aside
+              ref={sidebarRef}
+              className="fixed left-0 top-0 h-full w-64 bg-background border-r shadow-xl animate-in slide-in-from-left duration-300"
+            >
+              <div className="flex items-center justify-between p-4 border-b">
+                <Link href="/dashboard" onClick={() => setSidebarOpen(false)}>
+                  <img src="/logoGobal.png" alt="LuxeWear" className="h-6 w-auto" />
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(false)}
+                  aria-label="Close sidebar"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              <nav className="p-4 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
+                {renderNavSection(false)}
+              </nav>
+            </aside>
+          </div>
+        )}
+
+        {/* Body with Sidebar */}
+        <div className="mx-auto relative min-h-[calc(100vh-3.5rem)]">
+          {/* Desktop Sidebar */}
+          <aside
+            className={cn(
+              "hidden md:flex flex-col fixed left-0 top-14 h-[calc(100vh-3.5rem)] border-r bg-background z-30 transition-all duration-300",
+              isCollapsed ? "w-20" : "w-72"
+            )}
+          >
+            <nav className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+              {renderNavSection(isCollapsed)}
+            </nav>
+
+            {/* Collapse Toggle */}
+            <div className="p-4 border-t flex justify-end">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleCollapse}
+                className="ml-auto"
+                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
               </Button>
             </div>
-            <nav className="p-4 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
-              {renderNavSection()}
-            </nav>
           </aside>
+
+          {/* Content */}
+          <main
+            key={currentTenant || 'no-tenant'}
+            className={cn(
+              "flex-1 min-w-0 px-4 md:px-6 lg:px-8 py-6 transition-all duration-300 dashboard-main-zoom",
+              isCollapsed ? "md:ml-20" : "md:ml-72"
+            )}
+          >
+            <div className="w-full">
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
+            </div>
+          </main>
         </div>
-      )}
 
-      {/* Body with Sidebar */}
-      <div className="mx-auto flex relative min-h-[calc(100vh-3.5rem)]">
-        {/* Desktop Sidebar */}
-        <aside className="hidden md:block fixed left-0 top-14 w-72 h-[calc(100vh-3.5rem)] border-r bg-background z-30 overflow-y-auto">
-          <nav className="p-4">
-            {renderNavSection()}
-          </nav>
-        </aside>
+        {/* Logout Confirmation Dialog */}
+        <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <LogOut className="h-5 w-5 text-red-600" />
+                Sign out
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to sign out? You&apos;ll need to sign in again to access your account.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setLogoutDialogOpen(false)}
+                disabled={loggingOut}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="gap-2"
+              >
+                {loggingOut ? (
+                  <>
+                    <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Signing out...
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-        {/* Content */}
-        <main
-          key={currentTenant || 'no-tenant'}
-          className="flex-1 min-w-0 px-4 md:px-6 lg:px-8 py-6 transition-opacity duration-200 dashboard-main-zoom md:ml-72"
-        >
-          <div className="max-w-7xl mx-auto">
-            <ErrorBoundary>
-              {children}
-            </ErrorBoundary>
-          </div>
-        </main>
       </div>
-
-      {/* Logout Confirmation Dialog */}
-      <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <LogOut className="h-5 w-5 text-red-600" />
-              Sign out
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to sign out? You&apos;ll need to sign in again to access your account.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setLogoutDialogOpen(false)}
-              disabled={loggingOut}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleLogout}
-              disabled={loggingOut}
-              className="gap-2"
-            >
-              {loggingOut ? (
-                <>
-                  <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Signing out...
-                </>
-              ) : (
-                <>
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-    </div>
+    </TooltipProvider>
   );
 }

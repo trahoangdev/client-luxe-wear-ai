@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GithubIcon, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { GithubIcon, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -138,7 +138,10 @@ export default function LoginPageV1() {
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-1 text-sm font-medium text-destructive">{errors.email.message}</p>
+                  <p className="mt-1 text-sm font-medium text-destructive flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4" />
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -167,11 +170,15 @@ export default function LoginPageV1() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm font-medium text-destructive">{errors.password.message}</p>
+                  <p className="mt-1 text-sm font-medium text-destructive flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4" />
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
               {apiError && (
-                <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3">
+                <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
                   <p className="text-sm font-medium text-destructive">{apiError}</p>
                 </div>
               )}

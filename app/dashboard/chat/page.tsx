@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { RotateCcw } from "lucide-react";
 import { useAgents } from "./hooks/useAgents";
 import { useConversations } from "./hooks/useConversations";
 import { useChat } from "./hooks/useChat";
@@ -12,6 +14,8 @@ import { ChatMessageList } from "./components/ChatMessageList";
 import { ChatInput } from "./components/ChatInput";
 import { ContextSidebar } from "./components/ContextSidebar";
 import { DeleteConversationDialog } from "./components/DeleteConversationDialog";
+
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 export default function ChatPage() {
   const search = useSearchParams();
@@ -45,6 +49,8 @@ export default function ChatPage() {
     streamingMessageId,
     streamingContent,
     send: sendMessage,
+    stop,
+    reload,
   } = useChat(agentId, context);
 
   // Load conversation messages when switching conversations
@@ -147,8 +153,17 @@ export default function ChatPage() {
 
   const conversationToDeleteData = conversations.find(c => c.id === conversationToDelete) || null;
 
+  const handlePromptClick = async (text: string) => {
+    if (!currentConversationId) {
+      isCreatingConvRef.current = true;
+      const title = text.slice(0, 50) + (text.length > 50 ? "..." : "");
+      createNewConversation(title);
+    }
+    await sendMessage(text);
+  };
+
   return (
-    <div className="flex gap-4 h-[calc(100vh-200px)] -ml-40">
+    <div className="flex gap-4 h-[calc(100vh-8rem)]">
       {/* Conversation History Sidebar */}
       <ConversationSidebar
         conversations={conversations}
@@ -157,37 +172,50 @@ export default function ChatPage() {
         onCreateNew={handleCreateNewConversation}
         onSelect={handleLoadConversation}
         onDelete={openDeleteDialog}
+        onRename={updateConversationTitle}
       />
 
       {/* Main Chat Area */}
       <div className="flex-1 space-y-4">
-        <ChatHeader
-          agents={agents}
-          agentId={agentId}
-          lockedAgent={lockedAgent}
-          onAgentChange={setAgentId}
-          onCreateNewChat={handleCreateNewConversation}
-          onClear={handleClear}
-          onExport={exportMarkdown}
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-          messagesCount={messages.length}
-        />
+        <ErrorBoundary name="ChatArea">
+          <ChatHeader
+            agents={agents}
+            agentId={agentId}
+            lockedAgent={lockedAgent}
+            onAgentChange={setAgentId}
+            onCreateNewChat={handleCreateNewConversation}
+            onClear={handleClear}
+            onExport={exportMarkdown}
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            messagesCount={messages.length}
+          />
 
-        <ChatMessageList
-          messages={messages}
-          loading={loading}
-          streamingMessageId={streamingMessageId}
-          streamingContent={streamingContent}
-        />
+          <ChatMessageList
+            messages={messages}
+            loading={loading}
+            streamingMessageId={streamingMessageId}
+            streamingContent={streamingContent}
+            onPromptClick={handlePromptClick}
+            agentName={agents.find(a => a.id === agentId)?.name}
+          />
 
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          loading={loading}
-          agentId={agentId}
-          onSend={handleSend}
-        />
+          <ChatInput
+            input={input}
+            setInput={setInput}
+            loading={loading}
+            agentId={agentId}
+            onSend={handleSend}
+            onStop={stop}
+          />
+          {!loading && messages.length > 0 && messages[messages.length - 1].role === "assistant" && (
+            <div className="flex justify-center pb-2">
+              <Button variant="ghost" size="sm" onClick={reload} className="text-xs text-muted-foreground gap-1 hover:text-foreground">
+                <RotateCcw className="h-3 w-3" /> Regenerate Response
+              </Button>
+            </div>
+          )}
+        </ErrorBoundary>
       </div>
 
       {/* Context Sidebar */}

@@ -21,19 +21,23 @@ export function EmptyState({
   icon,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-12 px-4 border rounded-2xl bg-muted/20 space-y-4">
-      {icon && <div className="flex items-center justify-center h-12 w-12 rounded-full bg-background shadow-sm">{icon}</div>}
-      <div className="space-y-1 max-w-md">
-        <h2 className="text-base md:text-lg font-semibold">{title}</h2>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    <div className="flex flex-col items-center justify-center text-center py-16 px-6 border-2 border-dashed rounded-3xl bg-muted/10 hover:bg-muted/20 transition-colors space-y-6">
+      {icon && (
+        <div className="flex items-center justify-center h-20 w-20 rounded-2xl bg-gradient-to-br from-background to-muted shadow-sm border mb-2">
+          {icon}
+        </div>
+      )}
+      <div className="space-y-2 max-w-md">
+        <h2 className="text-lg md:text-xl font-semibold tracking-tight">{title}</h2>
+        {description && <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>}
       </div>
       {(actionLabel || secondaryActionLabel) && (
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
           {actionLabel && onAction && (
-            <Button onClick={onAction}>{actionLabel}</Button>
+            <Button onClick={onAction} size="lg" className="min-w-[140px] shadow-md hover:shadow-lg transition-all">{actionLabel}</Button>
           )}
           {secondaryActionLabel && onSecondaryAction && (
-            <Button variant="outline" onClick={onSecondaryAction}>
+            <Button variant="outline" onClick={onSecondaryAction} size="lg">
               {secondaryActionLabel}
             </Button>
           )}
