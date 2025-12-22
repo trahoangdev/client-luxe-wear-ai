@@ -4,12 +4,10 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { adminListUsers } from '@/services/userService';
 import { adminListAllAgents } from '@/services/agentService';
-import { adminListAllKnowledge } from '@/services/knowledgeService';
 import { adminListAllTenants } from '@/services/tenantService';
 import {
     Users,
     Bot,
-    Database,
     Building2
 } from 'lucide-react';
 import Link from 'next/link';
@@ -18,7 +16,6 @@ export function StatsCards() {
     const [stats, setStats] = useState({
         users: 0,
         agents: 0,
-        knowledge: 0,
         tenants: 0
     });
     const [loading, setLoading] = useState(true);
@@ -27,23 +24,20 @@ export function StatsCards() {
         const fetchData = async () => {
             try {
                 // Fetch concurrently but handle errors individually
-                const [usersRes, agentsRes, knowledgeRes, tenantsRes] = await Promise.all([
+                const [usersRes, agentsRes, tenantsRes] = await Promise.all([
                     adminListUsers({ page: 1, perPage: 1 }).catch(() => ({ total: 0 } as unknown as any)),
                     adminListAllAgents({ page: 1, perPage: 1 }).catch(() => ({ data: { pagination: { total: 0 } } } as unknown as any)),
-                    adminListAllKnowledge({ page: 1, perPage: 1 }).catch(() => ({ data: { pagination: { total: 0 } } } as unknown as any)),
                     adminListAllTenants({ page: 1, perPage: 1 }).catch(() => ({ data: { pagination: { total: 0 } } } as unknown as any)),
                 ]);
 
                 // Access properties safely knowing the structure matches services
                 const totalUsers = 'total' in usersRes ? usersRes.total : 0;
                 const totalAgents = agentsRes.data?.pagination?.total || 0;
-                const totalKnowledge = knowledgeRes.data?.pagination?.total || 0;
                 const totalTenants = tenantsRes.data?.pagination?.total || 0;
 
                 setStats({
                     users: totalUsers,
                     agents: totalAgents,
-                    knowledge: totalKnowledge,
                     tenants: totalTenants
                 });
             } catch (error) {
@@ -73,14 +67,6 @@ export function StatsCards() {
             link: '/admin/dashboard/agent',
         },
         {
-            title: 'Knowledge Entries',
-            value: stats.knowledge,
-            icon: Database,
-            color: 'text-green-600 dark:text-green-400',
-            bgColor: 'bg-green-50 dark:bg-green-500/10',
-            link: '/admin/dashboard/knowledge',
-        },
-        {
             title: 'Total Tenants',
             value: stats.tenants,
             icon: Building2,
@@ -92,8 +78,8 @@ export function StatsCards() {
 
     if (loading) {
         return (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[1, 2, 3, 4].map((i) => (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
                     <Card key={i} className="p-6 h-[100px] animate-pulse bg-muted/50" />
                 ))}
             </div>
@@ -101,7 +87,7 @@ export function StatsCards() {
     }
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {statCards.map((card) => {
                 const Icon = card.icon;
                 return (

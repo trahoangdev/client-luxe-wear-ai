@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw } from 'lucide-react';
 import { StatsCards } from '@/components/admin/dashboard/stats-cards';
-import { RecentActivity } from '@/components/admin/dashboard/recent-activity';
+
 import { QuickActions } from '@/components/admin/dashboard/quick-actions';
 
 export default function AdminDashboardPage() {
@@ -32,10 +32,7 @@ export default function AdminDashboardPage() {
       <StatsCards />
 
       {/* Main Content Grid */}
-      <div className="grid gap-4 grid-cols-1"> {/* Expanded to full width, or split if charts added */}
-        {/* Recent Activity */}
-        <RecentActivity />
-      </div>
+
 
       {/* Quick Actions */}
       <QuickActions />
