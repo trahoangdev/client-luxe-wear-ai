@@ -50,8 +50,8 @@ function simpleMarkdownToHtml(input: string): string {
     if (listItems.length > 0 && listType) {
       const tag = listType === 'ul' ? 'ul' : 'ol';
       const className = listType === 'ul'
-        ? 'list-disc space-y-1 my-2 ml-6'
-        : 'list-decimal space-y-1 my-2 ml-6';
+        ? 'list-disc space-y-2 my-3 ml-6'
+        : 'list-decimal space-y-2 my-3 ml-6';
       processedLines.push(`<${tag} class="${className}">${listItems.join('')}</${tag}>`);
       listItems = [];
       listType = null;
@@ -70,7 +70,7 @@ function simpleMarkdownToHtml(input: string): string {
         inList = true;
         listType = 'ul';
       }
-      listItems.push(`<li class="ml-4 mb-1">${ulMatch[1]}</li>`);
+      listItems.push(`<li class="ml-4 pl-1 mb-2 text-[15px]">${ulMatch[1]}</li>`);
       continue;
     }
 
@@ -82,7 +82,7 @@ function simpleMarkdownToHtml(input: string): string {
         inList = true;
         listType = 'ol';
       }
-      listItems.push(`<li class="ml-4 mb-1">${olMatch[1]}</li>`);
+      listItems.push(`<li class="ml-4 pl-1 mb-2 text-[15px]">${olMatch[1]}</li>`);
       continue;
     }
 
@@ -104,7 +104,7 @@ function simpleMarkdownToHtml(input: string): string {
     if (p.startsWith('<') && (p.startsWith('<h') || p.startsWith('<pre') || p.startsWith('<ul') || p.startsWith('<ol'))) {
       return p;
     }
-    return `<p class="mb-3 leading-relaxed">${p}</p>`;
+    return `<p class="mb-4 leading-7 whitespace-pre-line text-[15px]">${p}</p>`;
   }).join('\n');
 
   // Single newlines to <br/> (but not inside code blocks or lists)

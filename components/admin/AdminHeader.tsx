@@ -9,10 +9,8 @@ import {
   LayoutDashboard,
   Users,
   Bot,
-  Database,
   Building2,
   BarChart3,
-  FileText,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -44,12 +42,8 @@ const adminRoutes = [
   { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { title: "User Management", href: "/admin/dashboard/user", icon: Users },
   { title: "Agent Management", href: "/admin/dashboard/agent", icon: Bot },
-  { title: "Knowledge Management", href: "/admin/dashboard/knowledge", icon: Database },
   { title: "Tenant Management", href: "/admin/dashboard/tenant", icon: Building2 },
   { title: "System Analytics", href: "/admin/dashboard/analytics", icon: BarChart3 },
-  // { title: "Activity Logs", href: "/admin/dashboard/activity", icon: Activity },
-  // { title: "Error Monitoring", href: "/admin/dashboard/errors", icon: AlertTriangle },
-  { title: "Content Moderation", href: "/admin/dashboard/moderation", icon: FileText },
   { title: "System Settings", href: "/admin/settings", icon: Settings },
 ];
 
@@ -67,12 +61,12 @@ export default function AdminHeader() {
     rawRole === "super_admin"
       ? "Super admin"
       : rawRole === "owner"
-      ? "Owner"
-      : rawRole === "admin"
-      ? "Admin"
-      : rawRole === "member"
-      ? "Member"
-      : undefined;
+        ? "Owner"
+        : rawRole === "admin"
+          ? "Admin"
+          : rawRole === "member"
+            ? "Member"
+            : undefined;
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -126,13 +120,13 @@ export default function AdminHeader() {
           {/* Left: Brand + nav */}
           <div className="flex items-center gap-6">
             <Link href="/admin/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <Image 
-                src="/logoGobal.png" 
-                alt="LuxeWear" 
-                width={32} 
-                height={32} 
-                className="h-8 w-auto dark:brightness-0 dark:invert" 
-                unoptimized 
+              <Image
+                src="/logoGobal.png"
+                alt="LuxeWear"
+                width={32}
+                height={32}
+                className="h-8 w-auto dark:brightness-0 dark:invert"
+                unoptimized
               />
               <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">LuxeWear</span>
@@ -158,9 +152,9 @@ export default function AdminHeader() {
               <span className="text-muted-foreground">Search</span>
               <span className="ml-2 rounded-md border px-1.5 py-0.5 text-[10px] text-muted-foreground">⌘ K</span>
             </button>
-            <Link 
+            <Link
               href="/admin/settings"
-              className="h-9 w-9 rounded-lg border inline-flex items-center justify-center hover:bg-muted transition-colors" 
+              className="h-9 w-9 rounded-lg border inline-flex items-center justify-center hover:bg-muted transition-colors"
               aria-label="Settings"
             >
               <Settings className="h-4 w-4" />
@@ -197,22 +191,22 @@ export default function AdminHeader() {
                 </div>
                 <div className="h-px bg-border" />
                 <div className="p-2">
-                  <Link 
-                    href="/dashboard/user" 
+                  <Link
+                    href="/dashboard/user"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
                   >
                     Profile
                   </Link>
-                  <Link 
-                    href="/dashboard/pages/settings" 
+                  <Link
+                    href="/dashboard/pages/settings"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
                   >
                     Settings
                   </Link>
-                  <Link 
-                    href="/dashboard" 
+                  <Link
+                    href="/dashboard"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors"
                   >

@@ -68,7 +68,7 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
                     {streamingContent}
                   </div>
                 ) : (
-                  <div className="prose max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:text-base prose-p:leading-7 prose-p:my-3 prose-li:text-base prose-li:my-1 prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border/50">
+                  <div className="prose max-w-none dark:prose-invert">
                     <Markdown>{message.content}</Markdown>
                   </div>
                 )}

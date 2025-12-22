@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import {
     Users,
     Bot,
-    Database,
     Building2
 } from 'lucide-react';
 import Link from 'next/link';
@@ -27,12 +26,7 @@ export function QuickActions() {
                         Manage Agents
                     </Button>
                 </Link>
-                <Link href="/admin/dashboard/knowledge">
-                    <Button variant="outline" className="w-full justify-start">
-                        <Database className="h-4 w-4 mr-2" />
-                        Manage Knowledge
-                    </Button>
-                </Link>
+
                 <Link href="/admin/dashboard/tenant">
                     <Button variant="outline" className="w-full justify-start">
                         <Building2 className="h-4 w-4 mr-2" />
