@@ -75,13 +75,33 @@ const config = {
         "collapsible-up": {
           from: { height: "var(--radix-collapsible-content-height)" },
           to: { height: "0" }
+        },
+        "message-slide-in-left": {
+          from: { opacity: "0", transform: "translateX(-10px)" },
+          to: { opacity: "1", transform: "translateX(0)" }
+        },
+        "message-slide-in-right": {
+          from: { opacity: "0", transform: "translateX(10px)" },
+          to: { opacity: "1", transform: "translateX(0)" }
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" }
+        },
+        "pulse-subtle": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.6" }
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "collapsible-down": "collapsible-down 0.2s ease-out",
-        "collapsible-up": "collapsible-up 0.2s ease-out"
+        "collapsible-up": "collapsible-up 0.2s ease-out",
+        "message-slide-in-left": "message-slide-in-left 0.3s ease-out",
+        "message-slide-in-right": "message-slide-in-right 0.3s ease-out",
+        "fade-in": "fade-in 0.2s ease-out",
+        "pulse-subtle": "pulse-subtle 2s ease-in-out infinite"
       }
     }
   },

@@ -28,13 +28,13 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
   return (
     <div
       className={cn(
-        "group flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
+        "group flex gap-2 sm:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
       {/* Avatar */}
       <Avatar className={cn(
-        "h-9 w-9 shrink-0 border-2",
+        "h-7 w-7 sm:h-9 sm:w-9 shrink-0 border-2",
         isUser
           ? "bg-primary text-primary-foreground border-primary/20"
           : "bg-muted border-muted-foreground/20"
@@ -43,18 +43,18 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
           "text-xs font-semibold",
           isUser ? "bg-primary text-primary-foreground" : "bg-muted"
         )}>
-          {isUser ? <UserIcon className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+          {isUser ? <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" /> : <Bot className="h-3 w-3 sm:h-4 sm:w-4" />}
         </AvatarFallback>
       </Avatar>
 
       {/* Message Content */}
       <div className={cn(
-        "flex flex-col gap-2 max-w-[75%]",
+        "flex flex-col gap-1 sm:gap-2 max-w-[85%] sm:max-w-[75%]",
         isUser ? "items-end" : "items-start"
       )}>
         {/* Message Bubble */}
         <div className={cn(
-          "rounded-2xl px-4 py-3 shadow-sm transition-all hover:shadow-md",
+          "rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-sm transition-all hover:shadow-md",
           isUser
             ? "bg-primary text-primary-foreground rounded-br-sm"
             : "bg-background border rounded-bl-sm"
@@ -63,9 +63,14 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
             <div className="space-y-4">
               {
                 isStreaming ? (
-                  // Đang streaming: hiển thị plain text để tránh parse Markdown liên tục
-                  <div className="whitespace-pre-wrap break-words text-base leading-7 text-foreground/90" >
-                    {streamingContent}
+                  // Streaming: render Markdown real-time để format ngay khi nhận được
+                  <div className="prose max-w-none dark:prose-invert">
+                    <Markdown>{streamingContent}</Markdown>
+                    <span className="inline-flex items-center gap-0.5 ml-1 align-middle">
+                      <span className="w-1.5 h-1.5 bg-primary/70 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1.5 h-1.5 bg-primary/70 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1.5 h-1.5 bg-primary/70 rounded-full animate-bounce" />
+                    </span>
                   </div>
                 ) : (
                   <div className="prose max-w-none dark:prose-invert">

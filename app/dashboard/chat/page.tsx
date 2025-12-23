@@ -163,7 +163,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-8rem)]">
+    <div className="flex gap-0 md:gap-4 h-[calc(100vh-6rem)] md:h-[calc(100vh-8rem)] relative">
       {/* Conversation History Sidebar */}
       <ConversationSidebar
         conversations={conversations}
@@ -173,10 +173,11 @@ export default function ChatPage() {
         onSelect={handleLoadConversation}
         onDelete={openDeleteDialog}
         onRename={updateConversationTitle}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-2 md:space-y-4 min-w-0">
         <ErrorBoundary name="ChatArea">
           <ChatHeader
             agents={agents}

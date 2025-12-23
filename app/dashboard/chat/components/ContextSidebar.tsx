@@ -8,6 +8,8 @@ interface ContextSidebarProps {
 }
 
 export function ContextSidebar({ context, setContext }: ContextSidebarProps) {
+  return null; // Tạm ẩn phần Advanced Context
+  /* 
   return (
     <div className="w-64 border-l bg-muted/30 p-4 space-y-3 hidden lg:block">
       <div className="text-sm font-semibold">Advanced</div>
@@ -24,5 +26,6 @@ export function ContextSidebar({ context, setContext }: ContextSidebarProps) {
       </div>
     </div>
   );
+  */
 }
 
