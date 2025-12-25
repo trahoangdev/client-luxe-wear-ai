@@ -51,7 +51,7 @@ import {
 export default function KnowledgePage() {
   const params = useSearchParams();
   const lockedAgentId = params.get("agentId");
-  
+
   // URL filters
   const urlFilters = useUrlFilters({
     tab: "list",
@@ -74,7 +74,7 @@ export default function KnowledgePage() {
   const [deleting, setDeleting] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
-  
+
   // edit state
   const [editingKnowledge, setEditingKnowledge] = useState<any | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -95,7 +95,7 @@ export default function KnowledgePage() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<number>(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [uploadDetails, setUploadDetails] = useState<Array<{fileName: string; status: string; percentage: number; error?: string}>>([]);
+  const [uploadDetails, setUploadDetails] = useState<Array<{ fileName: string; status: string; percentage: number; error?: string }>>([]);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -105,7 +105,7 @@ export default function KnowledgePage() {
         const res = await listAgents({ page: 1, pageSize: 100 });
         const data = res.data?.agents || res.data?.data?.agents || [];
         setAgents(data.map((a: any) => ({ id: a.id, name: a.name })));
-      } catch {}
+      } catch { }
     };
     if (!lockedAgentId) loadAgents();
   }, [lockedAgentId]);
@@ -181,7 +181,7 @@ export default function KnowledgePage() {
   const onFiles = (fileList: FileList | null) => {
     if (!fileList) return;
     const newFiles = Array.from(fileList);
-    
+
     // Prevent duplicate files by checking name and size
     setFiles((prev) => {
       const existingFiles = new Set(prev.map(f => `${f.name}-${f.size}`));
@@ -202,55 +202,55 @@ export default function KnowledgePage() {
 
   const handleUpload = async () => {
     if (files.length === 0 || uploading) return; // Prevent double upload
-    
+
     // Clear any existing interval
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current);
       progressIntervalRef.current = null;
     }
-    
+
     setUploading(true);
     setProgress(0);
-    
+
     // Store files to upload (prevent changes during upload)
     const filesToUpload = [...files];
-    
+
     try {
       const form = new FormData();
       filesToUpload.forEach((f) => form.append("files", f));
       if ((lockedAgentId || agentId) && (lockedAgentId || agentId) !== "none") {
         form.append("agentId", (lockedAgentId as string) || agentId);
       }
-      
+
       const res = await uploadFiles(form);
       const sid = res.data?.sessionId || res.sessionId;
       if (!sid) {
         throw new Error("No session ID returned from upload");
       }
-      
+
       setSessionId(sid);
       toast.success("Upload started");
-      
+
       // Track consecutive 404 errors
       let consecutive404Count = 0;
       const MAX_404_RETRIES = 5; // Allow 5 retries for 404 (5 seconds)
-      
+
       // Poll progress
       progressIntervalRef.current = setInterval(async () => {
         try {
           const progressRes = await getUploadProgress(sid);
-          
+
           // Reset 404 counter on success
           consecutive404Count = 0;
-          
+
           // Response structure: { success: true, sessionId: string, progress: UploadProgress[] }
           const progressArray = progressRes.progress || progressRes.data?.progress || [];
-          
+
           if (!Array.isArray(progressArray) || progressArray.length === 0) {
             // If no progress yet, keep waiting
             return;
           }
-          
+
           // Update upload details for UI display
           setUploadDetails(progressArray.map((p: any) => ({
             fileName: p.fileName || p.filename || p.name || "Unknown file",
@@ -258,36 +258,36 @@ export default function KnowledgePage() {
             percentage: p.percentage || 0,
             error: p.error || p.message || undefined
           })));
-          
+
           // Calculate average percentage from all files
           const totalPercentage = progressArray.reduce((sum: number, p: any) => {
             const percent = p.percentage || 0;
             return sum + Math.max(0, Math.min(100, percent));
           }, 0);
           const avgPercentage = progressArray.length > 0 ? totalPercentage / progressArray.length : 0;
-          
+
           const finalProgress = Math.min(100, Math.max(0, avgPercentage));
           setProgress(finalProgress);
-          
+
           // Check if all files are completed
-          const allCompleted = progressArray.every((p: any) => 
+          const allCompleted = progressArray.every((p: any) =>
             p.status === "completed" || p.status === "success" || (p.percentage || 0) >= 100
           );
-          const hasError = progressArray.some((p: any) => 
+          const hasError = progressArray.some((p: any) =>
             p.status === "error" || p.status === "failed" || p.status === "failure"
           );
-          const allProcessing = progressArray.every((p: any) => 
+          const allProcessing = progressArray.every((p: any) =>
             p.status === "processing" || p.status === "uploading" || p.status === "pending"
           );
-          
+
           // Collect error details for better user feedback
-          const errorFiles = progressArray.filter((p: any) => 
+          const errorFiles = progressArray.filter((p: any) =>
             p.status === "error" || p.status === "failed" || p.status === "failure"
           ).map((p: any) => ({
             fileName: p.fileName || p.filename || "Unknown file",
             error: p.error || p.message || "Processing failed"
           }));
-          
+
           // If all completed or progress is 100%, finish
           if (allCompleted || (finalProgress >= 100 && !allProcessing)) {
             if (progressIntervalRef.current) {
@@ -296,7 +296,7 @@ export default function KnowledgePage() {
             }
             setUploading(false);
             setProgress(100);
-            
+
             if (hasError && errorFiles.length > 0) {
               // Show detailed error messages
               toast.error(
@@ -309,22 +309,22 @@ export default function KnowledgePage() {
             } else {
               toast.success("Upload completed successfully");
             }
-            
+
             // Clear files and reset file input
             setFiles([]);
             if (fileInputRef.current) {
               fileInputRef.current.value = "";
             }
-            
+
             // Clear upload details after a delay
             setTimeout(() => {
               setUploadDetails([]);
             }, 3000);
-            
+
             // Wait a bit for server to process, then refresh and switch to list tab
             setTimeout(() => {
               setPage(1); // Reset to first page
-            load();
+              load();
               setTab("list"); // Switch to list tab to see new entries
               // Reset progress after switching tabs
               setTimeout(() => setProgress(0), 500);
@@ -334,7 +334,7 @@ export default function KnowledgePage() {
           // Handle 404 - session might not be ready yet or was cleaned up
           if (error?.response?.status === 404) {
             consecutive404Count++;
-            
+
             // If we get too many 404s, assume upload completed and session was cleaned up
             if (consecutive404Count >= MAX_404_RETRIES) {
               if (progressIntervalRef.current) {
@@ -346,7 +346,7 @@ export default function KnowledgePage() {
               toast.warning("Upload session ended. Please check if files were processed successfully.");
               setFiles([]);
               setUploadDetails([]);
-              
+
               // Refresh list after a delay
               setTimeout(() => {
                 setPage(1);
@@ -364,13 +364,13 @@ export default function KnowledgePage() {
               clearInterval(progressIntervalRef.current);
               progressIntervalRef.current = null;
             }
-          setUploading(false);
+            setUploading(false);
             toast.error("Failed to get upload progress");
             console.error("Progress polling error:", error);
           }
         }
       }, 1000); // Poll every 1 second
-      
+
     } catch (e: any) {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
@@ -413,14 +413,14 @@ export default function KnowledgePage() {
     setEditTitle(knowledge.title || "");
     try {
       // Try to parse metadata if it's already a string, otherwise stringify
-      const currentMeta = typeof knowledge.metadata === 'string' 
-        ? JSON.parse(knowledge.metadata) 
+      const currentMeta = typeof knowledge.metadata === 'string'
+        ? JSON.parse(knowledge.metadata)
         : (knowledge.metadata || {});
       setEditMetadata(JSON.stringify(currentMeta, null, 2));
     } catch {
       setEditMetadata("{}");
     }
-    
+
     setLoadingKnowledge(true);
     try {
       // Fetch full knowledge details for latest data
@@ -445,7 +445,7 @@ export default function KnowledgePage() {
 
   const handleUpdate = async () => {
     if (!editingKnowledge) return;
-    
+
     setUpdating(true);
     try {
       let meta: any = {};
@@ -456,12 +456,12 @@ export default function KnowledgePage() {
         setUpdating(false);
         return;
       }
-      
+
       const res = await updateKnowledge(editingKnowledge.id, {
         title: editTitle,
         metadata: meta,
       });
-      
+
       if (res.success) {
         toast.success("Knowledge updated successfully");
         setEditingKnowledge(null);
@@ -481,22 +481,22 @@ export default function KnowledgePage() {
   const handleBulkDelete = async () => {
     if (selectedItems.length === 0) return;
     if (!confirm(`Delete ${selectedItems.length} item(s)?`)) return;
-    
+
     setBulkDeleting(true);
     try {
       const deletePromises = selectedItems.map(id => deleteKnowledge(id));
       const results = await Promise.allSettled(deletePromises);
-      
+
       const successCount = results.filter(r => r.status === "fulfilled").length;
       const failCount = results.length - successCount;
-      
+
       if (successCount > 0) {
         toast.success(`Deleted ${successCount} item(s) successfully`);
       }
       if (failCount > 0) {
         toast.error(`Failed to delete ${failCount} item(s)`);
       }
-      
+
       setSelectedItems([]);
       load();
     } catch (e: any) {
@@ -517,7 +517,7 @@ export default function KnowledgePage() {
       fileType: item.fileType,
       createdAt: item.createdAt || item.created_at,
     }));
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -529,8 +529,8 @@ export default function KnowledgePage() {
   };
 
   const toggleSelectItem = (id: string) => {
-    setSelectedItems(prev => 
-      prev.includes(id) 
+    setSelectedItems(prev =>
+      prev.includes(id)
         ? prev.filter(i => i !== id)
         : [...prev, id]
     );
@@ -551,7 +551,7 @@ export default function KnowledgePage() {
   }), [items, total]);
 
   return (
-      <div className="space-y-6">
+    <div className="space-y-6">
       <Tabs value={tab} onValueChange={setTab} className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -631,36 +631,36 @@ export default function KnowledgePage() {
                     aria-label="Search knowledge entries"
                   />
                 </div>
-          {!lockedAgentId && (
+                {!lockedAgentId && (
                   <>
-              <Select value={agentFilter} onValueChange={setAgentFilter}>
-                      <SelectTrigger 
+                    <Select value={agentFilter} onValueChange={setAgentFilter}>
+                      <SelectTrigger
                         className="w-full sm:w-[220px]"
                         aria-label="Filter by agent"
                       >
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="All agents" />
                       </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All agents</SelectItem>
-                  {agents.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={String(perPage)} onValueChange={(v) => { setPerPage(parseInt(v)); setPage(1); }}>
+                      <SelectContent>
+                        <SelectItem value="all">All agents</SelectItem>
+                        {agents.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={String(perPage)} onValueChange={(v) => { setPerPage(parseInt(v)); setPage(1); }}>
                       <SelectTrigger className="w-full sm:w-[140px]">
                         <SelectValue placeholder="Per page" />
                       </SelectTrigger>
-                <SelectContent>
+                      <SelectContent>
                         {[10, 20, 30, 50].map((n) => (
                           <SelectItem key={n} value={String(n)}>{n} per page</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </>
                 )}
-            </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -699,19 +699,19 @@ export default function KnowledgePage() {
               </div>
             </CardHeader>
             <CardContent>
-                {loading ? (
+              {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
                   <p className="text-sm text-muted-foreground">Loading knowledge entries...</p>
                 </div>
-                ) : error ? (
+              ) : error ? (
                 <ErrorState
                   title="Failed to load knowledge"
                   description={error}
                   onAction={load}
                   actionLabel="Retry"
                 />
-                ) : items.length === 0 ? (
+              ) : items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
                   <h3 className="text-lg font-semibold mb-2">No knowledge entries found</h3>
@@ -731,7 +731,7 @@ export default function KnowledgePage() {
                     </div>
                   )}
                 </div>
-                ) : (
+              ) : (
                 <div className="space-y-3">
                   {items.length > 0 && (
                     <div className="flex items-center gap-2 pb-2 border-b">
@@ -740,7 +740,7 @@ export default function KnowledgePage() {
                         onCheckedChange={toggleSelectAll}
                       />
                       <span className="text-sm text-muted-foreground">
-                        {selectedItems.length > 0 
+                        {selectedItems.length > 0
                           ? `${selectedItems.length} selected`
                           : "Select all"}
                       </span>
@@ -829,7 +829,7 @@ export default function KnowledgePage() {
                       </CardContent>
                     </Card>
                   ))}
-          </div>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -882,20 +882,20 @@ export default function KnowledgePage() {
                   disabled={deleting}
                   onClick={async () => {
                     if (!confirmDelete) return;
-                    
+
                     const deleteId = confirmDelete.id;
                     const deleteTitle = confirmDelete.title;
-                    
+
                     setDeleting(true);
-                    
+
                     // Optimistic update: remove from UI immediately
                     setItems((prev) => prev.filter((item) => item.id !== deleteId));
                     setTotal((prev) => Math.max(0, prev - 1));
                     setConfirmDelete(null);
-                    
+
                     // Show toast immediately
                     toast.success("Knowledge entry deleted successfully");
-                    
+
                     // Delete in background
                     try {
                       const res = await deleteKnowledge(deleteId);
@@ -921,7 +921,7 @@ export default function KnowledgePage() {
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                      Delete
                     </>
                   )}
                 </Button>
@@ -1042,8 +1042,8 @@ export default function KnowledgePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
@@ -1051,29 +1051,29 @@ export default function KnowledgePage() {
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter knowledge title"
                   />
-            </div>
-            <div className="space-y-2">
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="agent">
                     Agent {lockedAgentId ? "(locked)" : "(optional)"}
                   </Label>
-              {lockedAgentId ? (
+                  {lockedAgentId ? (
                     <Input value={lockedAgentId} readOnly className="bg-muted" />
-              ) : (
-                <Select value={agentId} onValueChange={setAgentId}>
+                  ) : (
+                    <Select value={agentId} onValueChange={setAgentId}>
                       <SelectTrigger id="agent">
                         <SelectValue placeholder="Select an agent (optional)" />
                       </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No agent</SelectItem>
-                    {agents.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
-          <div className="space-y-2">
+                      <SelectContent>
+                        <SelectItem value="none">No agent</SelectItem>
+                        {agents.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="content">Content (optional)</Label>
                 <Textarea
                   id="content"
@@ -1086,8 +1086,8 @@ export default function KnowledgePage() {
                 <p className="text-xs text-muted-foreground">
                   Note: For large documents, use the Upload tab for automatic chunking and processing.
                 </p>
-          </div>
-          <div className="space-y-2">
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="metadata">Metadata (JSON)</Label>
                 <Textarea
                   id="metadata"
@@ -1100,7 +1100,7 @@ export default function KnowledgePage() {
                 <p className="text-xs text-muted-foreground">
                   Provide valid JSON metadata. This will be stored with your knowledge entry.
                 </p>
-          </div>
+              </div>
               <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button variant="outline" onClick={() => {
                   setTitle("");
@@ -1122,7 +1122,7 @@ export default function KnowledgePage() {
                     </>
                   )}
                 </Button>
-          </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1140,8 +1140,8 @@ export default function KnowledgePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="files">Select Files</Label>
                   <div className="relative">
                     <Input
@@ -1154,14 +1154,14 @@ export default function KnowledgePage() {
                       className="cursor-pointer"
                     />
                   </div>
-              {files.length > 0 && (
+                  {files.length > 0 && (
                     <Card className="mt-3">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-sm">Selected Files ({files.length})</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                    {files.map((f, i) => (
+                          {files.map((f, i) => (
                             <div key={i} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -1180,40 +1180,40 @@ export default function KnowledgePage() {
                                   <X className="h-3 w-3" />
                                 </Button>
                               </div>
-                </div>
+                            </div>
                           ))}
                         </div>
                       </CardContent>
                     </Card>
-              )}
-            </div>
-            <div className="space-y-2">
+                  )}
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="upload-agent">
                     Agent {lockedAgentId ? "(locked)" : "(optional)"}
                   </Label>
-              {lockedAgentId ? (
-                    <Input value={lockedAgentId} readOnly className="bg-muted" />
-              ) : (
-                <Select value={agentId} onValueChange={setAgentId}>
+                  {lockedAgentId ? (
+                    <Input value={`${lockedAgentId.slice(0, 4)}...`} readOnly className="bg-muted" />
+                  ) : (
+                    <Select value={agentId} onValueChange={setAgentId}>
                       <SelectTrigger id="upload-agent">
                         <SelectValue placeholder="Select an agent (optional)" />
                       </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No agent</SelectItem>
-                    {agents.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
+                      <SelectContent>
+                        <SelectItem value="none">No agent</SelectItem>
+                        {agents.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </div>
 
               {/* Upload Progress */}
               {(uploading || progress > 0) && (
                 <Card>
                   <CardContent className="pt-6">
-          <div className="space-y-4">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">Upload Progress</span>
                         <span className="text-muted-foreground">{Math.floor(progress)}%</span>
@@ -1225,7 +1225,7 @@ export default function KnowledgePage() {
                           Processing files...
                         </p>
                       )}
-                      
+
                       {/* File-by-file progress details */}
                       {uploadDetails.length > 0 && (
                         <div className="space-y-2 pt-2 border-t">
@@ -1234,16 +1234,15 @@ export default function KnowledgePage() {
                             <div key={idx} className="space-y-1">
                               <div className="flex items-center justify-between text-xs">
                                 <span className="truncate flex-1 mr-2">{detail.fileName}</span>
-                                <span className={`text-xs font-medium ${
-                                  detail.status === "completed" || detail.status === "success" 
-                                    ? "text-green-600" 
+                                <span className={`text-xs font-medium ${detail.status === "completed" || detail.status === "success"
+                                    ? "text-green-600"
                                     : detail.status === "error" || detail.status === "failed" || detail.status === "failure"
-                                    ? "text-red-600"
-                                    : "text-blue-600"
-                                }`}>
+                                      ? "text-red-600"
+                                      : "text-blue-600"
+                                  }`}>
                                   {detail.status === "completed" || detail.status === "success" ? "✓" :
-                                   detail.status === "error" || detail.status === "failed" || detail.status === "failure" ? "✗" :
-                                   detail.status === "processing" || detail.status === "uploading" ? "⟳" : ""}
+                                    detail.status === "error" || detail.status === "failed" || detail.status === "failure" ? "✗" :
+                                      detail.status === "processing" || detail.status === "uploading" ? "⟳" : ""}
                                   {" "}
                                   {Math.floor(detail.percentage)}%
                                 </span>
@@ -1260,7 +1259,7 @@ export default function KnowledgePage() {
                           ))}
                         </div>
                       )}
-            </div>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -1271,7 +1270,7 @@ export default function KnowledgePage() {
                 <p className="text-xs text-muted-foreground">
                   PDF, DOC, DOCX, TXT, MD, MDX. Multiple files supported. Processing continues if one fails.
                 </p>
-          </div>
+              </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button
@@ -1305,11 +1304,11 @@ export default function KnowledgePage() {
                     </>
                   )}
                 </Button>
-          </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-      </div>
+    </div>
   );
 }
