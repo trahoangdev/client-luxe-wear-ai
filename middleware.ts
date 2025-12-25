@@ -6,25 +6,31 @@ export function middleware(request: NextRequest) {
   const pathname = nextUrl.pathname;
 
   const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isProtected = isDashboard || isAdmin;
+
   const isAuthPage =
     pathname === "/auth/login" ||
     pathname === "/auth/register" ||
     pathname.startsWith("/auth/");
 
-  // Redirect unauthenticated user away from dashboard về trang chủ
-  if (isDashboard && !isAuthenticated) {
-    const redirectUrl = new URL("/", request.url);
+  // 1. Redirect unauthenticated users trying to access protected routes to login
+  if (isProtected && !isAuthenticated) {
+    const redirectUrl = new URL("/auth/login", request.url);
+    // Optional: Add ?from=... to redirect back after login
+    redirectUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Allow access to auth pages even if cookie exists
-  // Let the client-side handle redirect if user is truly authenticated
-  // This allows users to login again or switch accounts
-  // The login page will handle redirecting authenticated users via useRequireAuth or similar hooks
+  // 2. Redirect authenticated users trying to access auth pages to dashboard
+  if (isAuthPage && isAuthenticated) {
+    const redirectUrl = new URL("/dashboard", request.url);
+    return NextResponse.redirect(redirectUrl);
+  }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/auth/:path*"]
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/auth/:path*"]
 };

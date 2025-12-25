@@ -83,7 +83,7 @@ export function ChatInput({ input, setInput, loading, agentId, onSend, onStop }:
         )}>
           {input.length} / {MAX_INPUT}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="hidden sm:flex items-center gap-2">
           <Badge variant="outline" className="text-xs font-normal">
             Enter to send
           </Badge>

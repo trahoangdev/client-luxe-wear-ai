@@ -72,7 +72,8 @@ export default function LoginPageV1() {
           refreshToken: res.data.refreshToken ?? null
         })
       );
-      router.push("/dashboard");
+      // Force full reload to ensure cookies are sent to server and middleware check passes
+      window.location.href = "/dashboard";
     } catch (err: any) {
       const apiErrors = err?.response?.data?.errors as Array<{ msg: string; param?: string }>;
       if (Array.isArray(apiErrors)) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, History, Trash2, Search, Pencil, Check, X } from "lucide-react";
+import { Plus, History, Trash2, Search, Pencil, Check, X, PanelLeftClose, PanelLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Conversation } from "../types";
 
@@ -14,6 +14,7 @@ interface ConversationSidebarProps {
   onSelect: (convId: string) => void;
   onDelete: (convId: string) => void;
   onRename: (convId: string, title: string) => void;
+  onToggleSidebar?: () => void;
 }
 
 export function ConversationSidebar({
@@ -24,6 +25,7 @@ export function ConversationSidebar({
   onSelect,
   onDelete,
   onRename,
+  onToggleSidebar,
 }: ConversationSidebarProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -67,26 +69,68 @@ export function ConversationSidebar({
       cancelEditing();
     }
   };
-  return (
-    <div className={cn(
-      "w-80 border-r bg-gradient-to-b from-background to-muted/30 transition-all duration-300 flex flex-col",
-      !sidebarOpen && "hidden lg:block"
-    )}>
-      <div className="px-3 py-2.5 border-b bg-background/50 backdrop-blur-sm flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <History className="h-4 w-4 text-primary" />
-          <span className="font-semibold text-sm">Conversations</span>
-        </div>
+  
+  // Khi sidebar đóng, chỉ hiển thị nút mở
+  if (!sidebarOpen) {
+    return (
+      <div className="hidden md:flex border-r bg-background/50 p-2 flex-col items-center">
         <Button
           variant="ghost"
           size="sm"
-          onClick={onCreateNew}
-          className="h-7 w-7 p-0 hover:bg-primary/10"
-          title="New Conversation"
+          onClick={onToggleSidebar}
+          className="h-8 w-8 p-0 hover:bg-primary/10"
+          title="Open Conversations"
         >
-          <Plus className="h-4 w-4" />
+          <PanelLeft className="h-4 w-4" />
         </Button>
       </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Mobile overlay backdrop */}
+      <div 
+        className="md:hidden fixed inset-0 bg-black/50 z-40"
+        onClick={onToggleSidebar}
+      />
+      
+      {/* Sidebar */}
+      <div className={cn(
+        "bg-gradient-to-b from-background to-muted/30 transition-all duration-300 flex flex-col z-50",
+        // Mobile: fixed overlay
+        "fixed md:relative inset-y-0 left-0",
+        "w-[280px] md:w-72 lg:w-80",
+        "border-r shadow-lg md:shadow-none"
+      )}>
+        <div className="px-3 py-2.5 border-b bg-background/50 backdrop-blur-sm flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <History className="h-4 w-4 text-primary" />
+            <span className="font-semibold text-sm">Conversations</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCreateNew}
+              className="h-7 w-7 p-0 hover:bg-primary/10"
+              title="New Conversation"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            {onToggleSidebar && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleSidebar}
+                className="h-7 w-7 p-0 hover:bg-primary/10"
+                title="Close Conversations"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
 
       <div className="px-3 py-2 border-b">
         <div className="relative">
@@ -202,6 +246,7 @@ export function ConversationSidebar({
         </div>
       </ScrollArea>
     </div>
+    </>
   );
 }
 
