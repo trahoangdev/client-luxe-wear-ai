@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, Bot, User as UserIcon, FileText, BookOpen } from "lucide-react";
+import { Copy, Check, Bot, User as UserIcon, FileText, BookOpen, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Markdown from "@/components/markdown";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, index, isStreaming, streamingContent }: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const isUser = message.role === "user";
 
   const handleCopy = () => {
@@ -82,42 +83,39 @@ export function ChatMessage({ message, index, isStreaming, streamingContent }: C
                 Array.isArray(message.citations) &&
                 message.citations.length > 0 &&
                 message.citations.some(c => c && (c.score > 0 || c.title || c.fileName)) && (
-                  <div className="mt-4 pt-4 border-t border-border/60">
-                    <div className="flex items-center gap-2 mb-3">
-                      <BookOpen className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-semibold text-foreground/80">Nguồn tham khảo</span>
-                    </div>
-                    <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
-                      {message.citations.map((citation, idx) => (
-                        <div
-                          key={citation.id || idx}
-                          className="group/citation text-sm bg-muted/30 hover:bg-muted/60 transition-colors rounded-lg p-3 border border-border/40 hover:border-primary/20"
-                        >
-                          <div className="flex items-start gap-2.5">
-                            <FileText className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground group-hover/citation:text-primary transition-colors" />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-foreground/90 mb-1 leading-snug line-clamp-1">
-                                {citation.title || citation.fileName || `Nguồn ${idx + 1}`}
-                              </div>
-                              <div className="space-y-1">
-                                {citation.fileName && citation.fileName !== citation.title && (
-                                  <div className="text-xs text-muted-foreground break-all">📄 {citation.fileName}</div>
-                                )}
-                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground/80">
-                                  {citation.page !== undefined && <span>📑 Trang {citation.page + 1}</span>}
-                                  {citation.line !== undefined && <span>📍 Dòng {citation.line + 1}</span>}
-                                </div>
-                                {citation.content && (
-                                  <div className="text-xs mt-2 pt-2 border-t border-border/30 italic line-clamp-2 text-muted-foreground/70">
-                                    &quot;{citation.content}&quot;
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                  <div className="mt-3 pt-3 border-t border-border/40">
+                    <button
+                      type="button"
+                      onClick={() => setSourcesOpen(!sourcesOpen)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                    >
+                      <BookOpen className="h-3 w-3" />
+                      Nguồn
+                      <span className="bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
+                        {message.citations.filter(c => c && (c.score > 0 || c.title || c.fileName)).length}
+                      </span>
+                      <ChevronDown className={cn("h-3 w-3 transition-transform", sourcesOpen && "rotate-180")} />
+                    </button>
+                    {sourcesOpen && (
+                      <div className="mt-2 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                        {message.citations.filter(c => c && (c.score > 0 || c.title || c.fileName)).map((citation, idx) => (
+                          <div
+                            key={citation.id || idx}
+                            className="flex items-center gap-2 text-xs px-2.5 py-1.5 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors group/citation"
+                          >
+                            <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover/citation:text-primary transition-colors" />
+                            <span className="font-medium text-foreground/80 truncate">
+                              {citation.title || citation.fileName || `Nguồn ${idx + 1}`}
+                            </span>
+                            {citation.content && (
+                              <span className="text-muted-foreground/60 truncate hidden sm:inline italic">
+                                — {citation.content.slice(0, 60)}…
+                              </span>
+                            )}
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
             </div>

@@ -69,7 +69,7 @@ export default function AgentDetailsPage() {
   const [allowedOrigins, setAllowedOrigins] = useState<string[]>([]);
   const [newOrigin, setNewOrigin] = useState("");
 
-  const [model, setModel] = useState("gemini-1.5-pro");
+  const [model, setModel] = useState("gpt-4o-mini");
   const [temperature, setTemperature] = useState<number>(0.7);
   const [maxTokens, setMaxTokens] = useState<number>(2048);
   const [systemPrompt, setSystemPrompt] = useState<string>("");
@@ -103,7 +103,7 @@ export default function AgentDetailsPage() {
         setName(data.name || "");
         setDescription(data.description || "");
         const cfg = data.config || {};
-        setModel(cfg.model || "gemini-1.5-pro");
+        setModel(cfg.model || "gpt-4o-mini");
         setTemperature(typeof cfg.temperature === "number" ? cfg.temperature : 0.7);
         setMaxTokens(typeof cfg.maxTokens === "number" ? cfg.maxTokens : 2048);
         setSystemPrompt(cfg.systemPrompt || "");
@@ -447,8 +447,10 @@ export default function AgentDetailsPage() {
               <Select value={model} onValueChange={setModel} disabled={!editMode}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gemini-1.5-pro">gemini-1.5-pro</SelectItem>
+                  <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                  <SelectItem value="gpt-4o">gpt-4o</SelectItem>
                   <SelectItem value="gemini-2.5-flash">gemini-2.5-flash</SelectItem>
+                  <SelectItem value="gemini-1.5-pro">gemini-1.5-pro</SelectItem>
                 </SelectContent>
               </Select>
             </div>

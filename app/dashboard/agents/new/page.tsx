@@ -25,7 +25,7 @@ const schema = z.object({
   description: z.string().max(500, "Max 500 characters").optional(),
   config: z
     .object({
-      model: z.enum(["gemini-1.5-pro", "gemini-2.5-flash"]).default("gemini-1.5-pro"),
+      model: z.enum(["gemini-1.5-pro", "gemini-2.5-flash", "gpt-4o-mini", "gpt-4o"]).default("gpt-4o-mini"),
       temperature: z
         .number({ invalid_type_error: "Must be a number" })
         .min(0, "Min 0")
@@ -67,7 +67,7 @@ const templates: AgentTemplate[] = [
       name: "Customer Support Agent",
       description: "AI assistant for customer support and FAQ",
       config: {
-        model: "gemini-1.5-pro",
+        model: "gpt-4o-mini",
         temperature: 0.7,
         maxTokens: 2048,
         systemPrompt: "You are a helpful and friendly customer support agent. Your goal is to assist customers with their questions and resolve their issues efficiently. Always be polite, professional, and empathetic.",
@@ -85,7 +85,7 @@ const templates: AgentTemplate[] = [
       name: "Sales Assistant",
       description: "AI assistant for sales and product recommendations",
       config: {
-        model: "gemini-1.5-pro",
+        model: "gpt-4o-mini",
         temperature: 0.8,
         maxTokens: 2048,
         systemPrompt: "You are a knowledgeable sales assistant. Help customers find the right products, answer questions about features and pricing, and guide them through the purchase process.",
@@ -103,7 +103,7 @@ const templates: AgentTemplate[] = [
       name: "Content Writer",
       description: "AI assistant for content creation and writing",
       config: {
-        model: "gemini-1.5-pro",
+        model: "gpt-4o-mini",
         temperature: 0.9,
         maxTokens: 3072,
         systemPrompt: "You are a professional content writer. Create engaging, well-structured content that is informative and easy to read. Adapt your writing style based on the target audience and purpose.",
@@ -121,7 +121,7 @@ const templates: AgentTemplate[] = [
       name: "Chatbot",
       description: "General-purpose conversational AI assistant",
       config: {
-        model: "gemini-2.5-flash",
+        model: "gpt-4o-mini",
         temperature: 0.7,
         maxTokens: 2048,
         systemPrompt: "You are a friendly and helpful AI assistant. Engage in natural conversations, answer questions, and provide useful information. Be conversational and approachable.",
@@ -139,7 +139,7 @@ const templates: AgentTemplate[] = [
       name: "Developer Assistant",
       description: "AI assistant for coding and technical support",
       config: {
-        model: "gemini-1.5-pro",
+        model: "gpt-4o",
         temperature: 0.3,
         maxTokens: 3072,
         systemPrompt: "You are an expert software developer assistant. Help with coding, debugging, code reviews, and technical explanations. Provide accurate, well-structured code examples and explanations.",
@@ -157,7 +157,7 @@ const templates: AgentTemplate[] = [
       name: "Fashion Assistant",
       description: "AI assistant for fashion advice, style recommendations, and trend insights",
       config: {
-        model: "gemini-1.5-pro",
+        model: "gpt-4o-mini",
         temperature: 0.8,
         maxTokens: 2048,
         systemPrompt: "You are a knowledgeable fashion consultant and style expert. Help customers with fashion advice, outfit recommendations, style tips, and trend insights. Understand different body types, occasions, and personal preferences to provide tailored fashion guidance.",
@@ -175,7 +175,7 @@ const templates: AgentTemplate[] = [
       name: "",
       description: "",
       config: {
-        model: "gemini-1.5-pro",
+        model: "gpt-4o-mini",
         temperature: 0.7,
         maxTokens: 2048,
         systemPrompt: "",
@@ -195,7 +195,7 @@ export default function CreateAgentPage() {
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<AgentForm>({
     resolver: zodResolver(schema),
     defaultValues: {
-      config: { model: "gemini-1.5-pro", temperature: 0.7, maxTokens: 2048 },
+      config: { model: "gpt-4o-mini", temperature: 0.7, maxTokens: 2048 },
       allowed_origins: [],
     },
     mode: "onChange",
@@ -330,14 +330,16 @@ export default function CreateAgentPage() {
               <Label htmlFor="model">Model</Label>
               <Select
                 value={config?.model}
-                onValueChange={(v) => setValue("config.model", v as "gemini-1.5-pro" | "gemini-2.5-flash")}
+                onValueChange={(v) => setValue("config.model", v as "gemini-1.5-pro" | "gemini-2.5-flash" | "gpt-4o-mini" | "gpt-4o")}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gemini-1.5-pro">gemini-1.5-pro</SelectItem>
+                  <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                  <SelectItem value="gpt-4o">gpt-4o</SelectItem>
                   <SelectItem value="gemini-2.5-flash">gemini-2.5-flash</SelectItem>
+                  <SelectItem value="gemini-1.5-pro">gemini-1.5-pro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
