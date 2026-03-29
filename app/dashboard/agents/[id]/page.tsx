@@ -45,7 +45,7 @@ const getApiBaseUrl = () => {
   }
   
   // Fallback to production URL
-  return "https://server-luxe-wear-ai.onrender.com";
+  return "https://luxe-wear-api.onrender.com";
 };
 
 export default function AgentDetailsPage() {

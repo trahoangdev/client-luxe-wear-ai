@@ -21,7 +21,7 @@ const getApiBaseUrl = () => {
   }
 
   // Fallback to production URL
-  return "https://server-luxe-wear-ai.onrender.com";
+  return "https://luxe-wear-api.onrender.com";
 };
 
 export const API_BASE_URL = getApiBaseUrl();
