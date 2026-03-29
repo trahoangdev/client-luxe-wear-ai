@@ -27,7 +27,7 @@ export default function SettingsPage() {
       apiKey: "${apiKey || "YOUR_API_KEY"}",
     };
     var s = document.createElement('script');
-    s.src = '${process.env.NEXT_PUBLIC_SERVER_URL || "https://server-luxe-wear-ai.onrender.com"}/public/widget.js';
+    s.src = '${process.env.NEXT_PUBLIC_SERVER_URL || "https://luxe-wear-api.onrender.com"}/public/widget.js';
     s.async = true; document.head.appendChild(s);
   })();
 </script>`;
