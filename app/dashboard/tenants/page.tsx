@@ -80,13 +80,19 @@ export default function TenantsPage() {
         () => listUserTenants(),
         2
       );
-      // Response structure: { data: { tenants: [...], count: ... } } or { data: { data: { tenants: [...] } } }
-      const tenantsData = (res as any).data?.data?.tenants || (res as any).data?.tenants || (res as any).tenants || [];
-      setTenantsList(Array.isArray(tenantsData) ? tenantsData : []);
-      dispatch(setTenants(Array.isArray(tenantsData) ? tenantsData : []));
+      // Normalize: axios response wraps in .data, then successResponse wraps in .data again
+      const body = (res as any)?.data || res;
+      const raw = body?.data?.tenants || body?.tenants || [];
+      // Ensure every tenant has an id (fallback to index-based id if backend omits it)
+      const tenantsData = (Array.isArray(raw) ? raw : []).map((t: any, i: number) => ({
+        ...t,
+        id: t.id || t.tenant_id || `tenant-${i}`,
+      }));
+      setTenantsList(tenantsData);
+      dispatch(setTenants(tenantsData));
       
       // Set current tenant if not set
-      const validTenants = Array.isArray(tenantsData) ? tenantsData.filter((t: any) => t && t.id) : [];
+      const validTenants = tenantsData.filter((t: any) => t && t.id);
       if (!currentTenant && validTenants.length > 0) {
         const saved = typeof window !== "undefined" ? localStorage.getItem("currentTenant") : null;
         const tenantId = saved && validTenants.some((t: any) => t.id === saved) ? saved : validTenants[0].id;
@@ -110,8 +116,8 @@ export default function TenantsPage() {
     setCreating(true);
     try {
       const res = await createTenant({ name: createName.trim(), plan: createPlan });
-      // Response structure: { success: true, message: '...', data: { tenant: {...} } }
-      const newTenant = (res as any).data?.data?.tenant || (res as any).data?.data || (res as any).data?.tenant || (res as any).data || (res as any).tenant || res;
+      const createBody = (res as any)?.data || res;
+      const newTenant = createBody?.data?.tenant || createBody?.data || createBody?.tenant || createBody;
       
       // Validate tenant has required fields
       if (!newTenant || !newTenant.id) {
@@ -157,8 +163,8 @@ export default function TenantsPage() {
         name: editName.trim(),
         plan: editPlan,
       });
-      // Response structure: { success: true, message: '...', data: { tenant: {...} } }
-      const updated = (res as any).data?.data?.tenant || (res as any).data?.data || (res as any).data?.tenant || (res as any).data || (res as any).tenant || res;
+      const updateBody = (res as any)?.data || res;
+      const updated = updateBody?.data?.tenant || updateBody?.data || updateBody?.tenant || updateBody;
       if (!updated || !updated.id) {
         toast.error("Invalid response from server");
         return;
@@ -209,7 +215,8 @@ export default function TenantsPage() {
     setLoadingMembers(true);
     try {
       const res = await listTenantMembers(tenantId);
-      const membersData = (res as any).data?.members || (res as any).data || (res as any).members || [];
+      const membersBody = (res as any)?.data || res;
+      const membersData = membersBody?.data?.members || membersBody?.members || [];
       setMembers(Array.isArray(membersData) ? membersData : []);
     } catch (e: any) {
       toast.error(e?.response?.data?.message || e?.message || "Failed to load members");
