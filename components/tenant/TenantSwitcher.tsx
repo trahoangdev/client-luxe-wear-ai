@@ -79,8 +79,8 @@ export default function TenantSwitcher() {
           ) : filtered.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">No workspaces</div>
           ) : (
-            filtered.map((t) => (
-              <button key={t.id} onClick={() => onSelect(t.id)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-muted">
+            filtered.map((t, idx) => (
+              <button key={t.id || idx} onClick={() => onSelect(t.id)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-muted">
                 <span>{t.name}</span>
                 {currentTenant === t.id && <Check className="h-4 w-4" />}
               </button>
